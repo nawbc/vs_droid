@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:responsive_framework/responsive_framework.dart';
+import 'package:provider/provider.dart';
+import 'package:vs_droid/config_model.dart';
+import 'components/switch/switch.dart';
 
 class LeftQuickBar extends StatefulWidget {
   const LeftQuickBar({Key? key}) : super(key: key);
@@ -12,6 +14,8 @@ class LeftQuickBar extends StatefulWidget {
 }
 
 class LeftQuickBarState extends State<LeftQuickBar> {
+  late ConfigModel _cm;
+
   @override
   void initState() {
     super.initState();
@@ -20,24 +24,38 @@ class LeftQuickBarState extends State<LeftQuickBar> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _cm = Provider.of<ConfigModel>(context);
   }
 
   @override
   Widget build(BuildContext context) {
     debugPrint('RightQuickBoard Painted...');
 
-    print(ResponsiveWrapper.of(context).isSmallerThan(DESKTOP));
+    List<Widget> settings = [
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          ListTile(
+            trailing: DroidSwitch(
+              onChanged: (bool value) {},
+              value: false,
+            ),
+            title: const Text("Allow Lan"),
+            contentPadding: const EdgeInsets.only(left: 15, right: 25),
+          ),
+        ],
+      ),
+    ];
 
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
         automaticallyImplyLeading: false,
         middle: Text(
-          '目录',
+          'settings',
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontWeight: FontWeight.w400,
             fontSize: 20,
-            // color: themeData.navTitleColor,
           ),
         ),
         // backgroundColor: themeData.navBackgroundColor,
@@ -48,30 +66,9 @@ class LeftQuickBarState extends State<LeftQuickBar> {
         child: SafeArea(
           child: ListView.builder(
             physics: const BouncingScrollPhysics(),
-            itemCount: 1,
+            itemCount: settings.length,
             itemBuilder: (BuildContext context, int index) {
-              return TextButton(
-                onPressed: () {
-                  print(MediaQuery.of(context).size.width);
-                  print(ResponsiveWrapper.of(context).isDesktop);
-                },
-                child: Text("demo"),
-              );
-              // return InkWell(
-              //   onTap: () {
-              //     Navigator.of(context, rootNavigator: true).push(
-              //       CupertinoPageRoute(
-              //         builder: (BuildContext context) {
-              //           return Container();
-              //         },
-              //       ),
-              //     );
-              //   },
-              //   child: ListTile(
-              //       title: ThemedText(S.of(context)!.about),
-              //       contentPadding: EdgeInsets.only(left: 15, right: 25),
-              //       trailing: Icon(Icons.hdr_weak)),
-              // );
+              return settings[index];
             },
           ),
         ),

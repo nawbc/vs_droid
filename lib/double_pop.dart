@@ -18,8 +18,7 @@ class DoublePop extends StatelessWidget {
       onWillPop: () async {
         if (_lastPressedTime == null ||
             (_lastPressedTime != null &&
-                DateTime.now().difference(_lastPressedTime!) >
-                    const Duration(milliseconds: 800))) {
+                DateTime.now().difference(_lastPressedTime!) > const Duration(milliseconds: 800))) {
           _lastPressedTime = DateTime.now();
           Fluttertoast.showToast(
             msg: "Press once again",

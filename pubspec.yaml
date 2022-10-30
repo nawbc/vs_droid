@@ -54,6 +54,8 @@ dependencies:
   file_picker: ^5.2.2
   dotted_line: ^3.1.0
   url_launcher: ^6.1.6
+  connectivity_plus: ^3.0.2
+  network_info_plus: ^3.0.1
 
 
 dev_dependencies:

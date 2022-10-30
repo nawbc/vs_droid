@@ -1,15 +1,10 @@
 library xlive_switch;
 
-import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 
-part 'animation_switch.dart';
-
-part 'thumb_painter.dart';
+import 'animation_switch.dart';
 
 class XlivSwitch extends StatefulWidget {
   //create a switcher with animation similar https://dribbble.com/shots/5429846-Switcher-XLIV
@@ -33,7 +28,7 @@ class XlivSwitch extends StatefulWidget {
   final Color? thumbColor;
 
   @override
-  _XlivSwitchState createState() => _XlivSwitchState();
+  _XliveSwitchState createState() => _XliveSwitchState();
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -43,10 +38,10 @@ class XlivSwitch extends StatefulWidget {
   }
 }
 
-class _XlivSwitchState extends State<XlivSwitch> with TickerProviderStateMixin {
+class _XliveSwitchState extends State<XlivSwitch> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    return _XlivSwitchRenderObjectWidget(
+    return XliveSwitchRenderObjectWidget(
       value: widget.value,
       activeColor: widget.activeColor ?? CupertinoColors.activeGreen,
       onChanged: widget.onChanged,

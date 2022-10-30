@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:unicons/unicons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vs_droid/distros/alpine.dart';
 import 'package:xterm/core.dart';
 import 'package:xterm/ui.dart';
 import 'components/list.dart';
@@ -55,8 +56,8 @@ class InitVscPage extends StatefulWidget {
 
 const rootfsCN = [
   {
-    "label": "Apline Linux(default)",
-    "value": "apline",
+    "label": "Alpine Linux(default)",
+    "value": "alpine",
   },
   {
     "label": "Manjaro(coming soon)",
@@ -93,11 +94,14 @@ const rootfsCN = [
 class _InitVscPageState extends State<InitVscPage> {
   late final Pty pty;
   late ConfigModel _cm;
-  late PlatformFile rootfsFile;
-  late List<Map<String, String>> supportRootfsList = rootfsCN;
-  String? rootfsPath;
-  Map<String, String> select = {
-    "label": "Apline Linux(default)",
+  late PlatformFile _rootfsFile;
+  late final List<Map<String, String>> _supportRootfsList = rootfsCN;
+  late List<String> _mirrorList = alpineMirror;
+  String selectMirrorName = "tsinghua";
+  String? _rootfsPath;
+
+  Map<String, String> _rootfsSelection = {
+    "label": "Alpine Linux(built-in)",
     "value": "alpine",
   };
 
@@ -134,30 +138,65 @@ class _InitVscPageState extends State<InitVscPage> {
     };
   }
 
-  Widget _createSelect(String name) {
-    return StatefulBuilder(
-      builder: (BuildContext context, StateSetter setBuilderState) {
-        return FocusedMenuHolder(
-          menuWidth: 200,
-          menuItemExtent: 35,
-          offsetY: 10,
-          duration: const Duration(milliseconds: 100),
-          maskColor: const Color.fromARGB(30, 116, 116, 116),
-          menuItems: supportRootfsList
-              .map(
-                (e) => FocusedMenuItem(
-                  title: Text(e["label"]!, style: const TextStyle(fontSize: 14)),
-                  onPressed: () {
-                    setState(() {
-                      select = e;
-                    });
-                  },
-                ),
-              )
-              .toList(),
-          child: Text(name, style: const TextStyle(fontSize: 14, color: Color(0xFF007AFF))),
-        );
-      },
+  void _setMirror() {
+    List<String> list;
+    switch (_rootfsSelection["value"]) {
+      case "alpine":
+        list = alpineMirror;
+        break;
+      default:
+        list = alpineMirror;
+        break;
+    }
+
+    setState(() {
+      _mirrorList = list;
+    });
+  }
+
+  Widget _selectRootfs(String name) {
+    return FocusedMenuHolder(
+      menuWidth: 200,
+      menuItemExtent: 35,
+      offsetY: 10,
+      duration: const Duration(milliseconds: 100),
+      maskColor: const Color.fromARGB(30, 116, 116, 116),
+      menuItems: _supportRootfsList
+          .map(
+            (e) => FocusedMenuItem(
+              title: Text(e["label"]!, style: const TextStyle(fontSize: 14)),
+              onPressed: () {
+                setState(() {
+                  _rootfsSelection = e;
+                });
+              },
+            ),
+          )
+          .toList(),
+      child: Text(name, style: const TextStyle(fontSize: 14, color: Color(0xFF007AFF))),
+    );
+  }
+
+  Widget _selectMirror(String name) {
+    return FocusedMenuHolder(
+      menuWidth: 200,
+      menuItemExtent: 35,
+      offsetY: 10,
+      duration: const Duration(milliseconds: 100),
+      maskColor: const Color.fromARGB(30, 116, 116, 116),
+      menuItems: _mirrorList
+          .map(
+            (e) => FocusedMenuItem(
+              title: Text(e, style: const TextStyle(fontSize: 14)),
+              onPressed: () {
+                setState(() {
+                  selectMirrorName = e;
+                });
+              },
+            ),
+          )
+          .toList(),
+      child: Text(name, style: const TextStyle(fontSize: 14, color: Color(0xFF007AFF))),
     );
   }
 
@@ -257,8 +296,8 @@ class _InitVscPageState extends State<InitVscPage> {
     );
     if (result != null) {
       setState(() {
-        rootfsFile = result.files.single;
-        rootfsPath = result.files.single.name;
+        _rootfsFile = result.files.single;
+        _rootfsPath = result.files.single.name;
       });
     }
   }
@@ -309,16 +348,16 @@ class _InitVscPageState extends State<InitVscPage> {
                     ListItem(
                       require: true,
                       dotted: true,
-                      leading: rootfsPath != null
+                      leading: _rootfsPath != null
                           ? Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text(rootfsPath!, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                                Text(_rootfsPath!, style: const TextStyle(color: Colors.grey, fontSize: 14)),
                                 const SizedBox(width: 10),
                                 GestureDetector(
                                   onTap: () {
                                     setState(() {
-                                      rootfsPath = null;
+                                      _rootfsPath = null;
                                     });
                                   },
                                   child: Icon(UniconsLine.times_circle, size: 16, color: Colors.red[400]),
@@ -328,16 +367,16 @@ class _InitVscPageState extends State<InitVscPage> {
                           : Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                _createSelect(select["label"]!),
+                                _selectRootfs(_rootfsSelection["label"]!),
                                 const SizedBox(width: 10),
-                                select["value"] != "alpine"
+                                _rootfsSelection["value"] != "alpine"
                                     ? SizedBox(
                                         height: 20,
                                         child: CupertinoButton.filled(
                                           borderRadius: const BorderRadius.all(Radius.circular(4)),
                                           padding: const EdgeInsets.only(left: 10, right: 10),
                                           onPressed: () async {
-                                            await launchUrl(Uri.parse(select["url"]!),
+                                            await launchUrl(Uri.parse(_rootfsSelection["url"]!),
                                                 mode: LaunchMode.externalApplication);
                                           },
                                           child: const Text('download', style: TextStyle(fontSize: 15)),
@@ -354,18 +393,11 @@ class _InitVscPageState extends State<InitVscPage> {
                     ),
                     ListItem(
                       dotted: true,
-                      leading: const Text('Recommend for Chinese (推荐中国地区)', style: TextStyle(fontSize: 14)),
+                      leading:
+                          Text('$selectMirrorName  -  ecommend for Chinese (推荐中国地区)', style: TextStyle(fontSize: 14)),
                       trailing: CupertinoButton(
-                        onPressed: () {},
-                        child: const Text('Select distro pkg mirror', style: TextStyle(fontSize: 14)),
-                      ),
-                    ),
-                    ListItem(
-                      dotted: true,
-                      leading: const Text('Recommend for Chinese (推荐中国地区)', style: TextStyle(fontSize: 14)),
-                      trailing: CupertinoButton(
-                        onPressed: () {},
-                        child: const Text('Select distro pkg mirror', style: TextStyle(fontSize: 14)),
+                        onPressed: _setMirror,
+                        child: _selectMirror("Select distro pkg mirror"),
                       ),
                     ),
                   ],

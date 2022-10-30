@@ -1,18 +1,27 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:unicons/unicons.dart';
-import 'package:vs_droid/config_model.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-import 'package:vs_droid/double_pop.dart';
-import 'package:vs_droid/error.dart';
-import 'package:vs_droid/home.dart';
-import 'package:vs_droid/init_vsc.dart';
-import 'package:vs_droid/inner_drawer.dart';
-import 'package:vs_droid/left_quick_bar.dart';
+
+import 'config_model.dart';
+import 'constant.dart';
+import 'double_pop.dart';
+import 'error.dart';
+import 'home.dart';
+import 'init_vsc.dart';
+import 'inner_drawer.dart';
+import 'left_quick_bar.dart';
+import 'theme.dart';
+import 'theme_model.dart';
+import 'utils.dart';
 
 class VSDroid extends StatefulWidget {
   const VSDroid({super.key});
@@ -31,6 +40,9 @@ class _VSDroid extends State<VSDroid> {
         ChangeNotifierProvider<ConfigModel>(
           create: (_) => ConfigModel(),
         ),
+        ChangeNotifierProvider<ThemeModel>(
+          create: (_) => ThemeModel(),
+        ),
       ],
       child: const InnerVSDroid(),
     );
@@ -48,57 +60,127 @@ class InnerVSDroid extends StatefulWidget {
 
 class _InnerVSDroid extends State<InnerVSDroid> {
   late ConfigModel _cm;
+  late ThemeModel _tm;
   final GlobalKey<InnerDrawerState> _innerDrawerKey = GlobalKey<InnerDrawerState>();
+  late StreamSubscription<ConnectivityResult> _connectSubscription;
+  late bool _modelInited;
 
-  appInit() async {
-    _cm = Provider.of<ConfigModel>(context);
-    await _cm.init();
-
-    return await _cm.termuxUsrDir.exists() && _cm.isAppInit;
+  @override
+  dispose() {
+    super.dispose();
+    _connectSubscription.cancel();
   }
 
-  prepareTermuxEnv() {}
+  @override
+  void didChangeDependencies() async {
+    super.didChangeDependencies();
 
-  initPtyEnv() {}
+    _cm = Provider.of<ConfigModel>(context);
+    _tm = Provider.of<ThemeModel>(context);
+    await _cm.init();
+    await _tm.init();
+
+    setState(() {
+      _modelInited = true;
+    });
+  }
 
   @override
   void initState() {
     super.initState();
+    _modelInited = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        systemNavigationBarIconBrightness: Brightness.dark,
-        systemNavigationBarColor: Colors.black,
-      ),
-      child: CupertinoApp(
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        navigatorObservers: [
-          SentryNavigatorObserver(),
-        ],
-        title: 'VS Droid',
-        builder: (context, child) {
-          return ResponsiveWrapper.builder(
-            child,
-            maxWidth: 1270,
-            minWidth: 480,
-            defaultScale: true,
-            breakpoints: [
-              const ResponsiveBreakpoint.resize(480, name: MOBILE),
-              const ResponsiveBreakpoint.autoScale(800, name: TABLET),
-              const ResponsiveBreakpoint.resize(1200, name: DESKTOP),
-            ],
-            background: Container(color: const Color(0xFFF5F5F5)),
-          );
-        },
-        home: DoublePop(
-          child: InnerDrawer(
+    DroidTheme themeData = _tm.themeData;
+
+    if (!_modelInited) {
+      return Container(color: themeData.scaffoldBackgroundColor);
+    } else {
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          systemNavigationBarIconBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.black,
+        ),
+        child: CupertinoApp(
+          theme: CupertinoThemeData(primaryColor: themeData.primaryColor),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          navigatorObservers: [
+            SentryNavigatorObserver(),
+          ],
+          title: 'VS Droid',
+          builder: (context, child) {
+            return ResponsiveWrapper.builder(
+              child,
+              maxWidth: 1270,
+              minWidth: 480,
+              defaultScale: true,
+              breakpoints: [
+                const ResponsiveBreakpoint.resize(480, name: MOBILE),
+                const ResponsiveBreakpoint.autoScale(800, name: TABLET),
+                const ResponsiveBreakpoint.resize(1200, name: DESKTOP),
+              ],
+              background: Container(color: const Color(0xFFF5F5F5)),
+            );
+          },
+          home: DoublePop(child: const Home()),
+        ),
+      );
+    }
+  }
+}
+
+class Home extends StatefulWidget {
+  const Home({super.key});
+
+  @override
+  State<StatefulWidget> createState() {
+    return _Home();
+  }
+}
+
+class _Home extends State<Home> {
+  late ConfigModel _cm;
+
+  final GlobalKey<InnerDrawerState> _innerDrawerKey = GlobalKey<InnerDrawerState>();
+
+  Future<void> _setInternalIp(ConnectivityResult? result) async {
+    if (result == ConnectivityResult.wifi) {
+      final info = NetworkInfo();
+      var wifiIP = await info.getWifiIP() ?? await getInternalIp() ?? LOOPBACK_ADDR;
+      _cm.setInternalIP(wifiIP);
+    }
+  }
+
+  Future<bool> appInit() async {
+    var result = await Connectivity().checkConnectivity();
+    await _setInternalIp(result).catchError((err) {});
+
+    return await _cm.termuxUsrDir.exists() && _cm.isAppInit;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _cm = Provider.of<ConfigModel>(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: appInit(),
+      builder: (BuildContext context, AsyncSnapshot snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError || snapshot.data == null) {
+            return const ErrorBoard();
+          }
+
+          return InnerDrawer(
             key: _innerDrawerKey,
             onTapClose: true,
             swipe: false,
@@ -118,22 +200,7 @@ class _InnerVSDroid extends State<InnerVSDroid> {
                 alignment: Alignment.center,
                 fit: StackFit.expand,
                 children: [
-                  FutureBuilder(
-                    future: appInit(),
-                    builder: (BuildContext context, AsyncSnapshot snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        if (snapshot.hasError || snapshot.data == null) {
-                          return const ErrorBoard();
-                        } else if (snapshot.data == true) {
-                          return const HomePage();
-                        } else {
-                          return const InitVscPage();
-                        }
-                      } else {
-                        return Container();
-                      }
-                    },
-                  ),
+                  snapshot.data == true ? const HomePage() : const InitVscPage(),
                   Positioned(
                     top: 25,
                     left: 20,
@@ -151,9 +218,11 @@ class _InnerVSDroid extends State<InnerVSDroid> {
                 ],
               ),
             ),
-          ),
-        ),
-      ),
+          );
+        } else {
+          return Container();
+        }
+      },
     );
   }
 }

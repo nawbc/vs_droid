@@ -1,7 +1,12 @@
-part of xlive_switch;
+import 'dart:ui';
 
-class _XlivSwitchRenderObjectWidget extends LeafRenderObjectWidget {
-  const _XlivSwitchRenderObjectWidget({
+import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+import 'thumb_painter.dart';
+
+class XliveSwitchRenderObjectWidget extends LeafRenderObjectWidget {
+  const XliveSwitchRenderObjectWidget({
     Key? key,
     required this.value,
     required this.activeColor,
@@ -74,7 +79,7 @@ class _RenderXliveSwitch extends RenderConstrainedBox {
         _onChanged = onChanged,
         _textDirection = textDirection,
         _thumbColor = thumbColor,
-        _thumbPainter = _XliveThumbPainter(color: thumbColor),
+        _thumbPainter = XliveThumbPainter(color: thumbColor),
         _vsync = vsync,
         super(additionalConstraints: const BoxConstraints.tightFor(width: _kSwitchWidth, height: _kSwitchHeight)) {
     _tap = TapGestureRecognizer()
@@ -306,7 +311,7 @@ class _RenderXliveSwitch extends RenderConstrainedBox {
     config.isToggled = _value;
   }
 
-  final _XliveThumbPainter _thumbPainter;
+  final XliveThumbPainter _thumbPainter;
 
   @override
   void paint(PaintingContext context, Offset offset) {
@@ -337,13 +342,13 @@ class _RenderXliveSwitch extends RenderConstrainedBox {
     canvas.drawDRRect(outerRRect, innerRRect, paint);
 
     final double thumbLeft = lerpDouble(
-      trackRect.left + _kTrackInnerStart - _XliveThumbPainter.radius,
-      trackRect.left + _kTrackInnerEnd - _XliveThumbPainter.radius,
+      trackRect.left + _kTrackInnerStart - XliveThumbPainter.radius,
+      trackRect.left + _kTrackInnerEnd - XliveThumbPainter.radius,
       visualPosition,
     )!;
     final double thumbRight = lerpDouble(
-      trackRect.left + _kTrackInnerStart + _XliveThumbPainter.radius,
-      trackRect.left + _kTrackInnerEnd + _XliveThumbPainter.radius,
+      trackRect.left + _kTrackInnerStart + XliveThumbPainter.radius,
+      trackRect.left + _kTrackInnerEnd + XliveThumbPainter.radius,
       visualPosition,
     )!;
     final double thumbCenterY = offset.dy + size.height / 2.0;
@@ -352,9 +357,9 @@ class _RenderXliveSwitch extends RenderConstrainedBox {
       canvas,
       Rect.fromLTRB(
         thumbLeft + (currentValue / 2).abs() * 8.0,
-        thumbCenterY - _XliveThumbPainter.radius,
+        thumbCenterY - XliveThumbPainter.radius,
         thumbRight - (currentValue / 2).abs() * 8.0,
-        thumbCenterY + _XliveThumbPainter.radius,
+        thumbCenterY + XliveThumbPainter.radius,
       ),
     );
   }

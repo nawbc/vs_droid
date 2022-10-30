@@ -1,14 +1,14 @@
 import 'package:flutter/widgets.dart';
-import 'xliv-switch.dart';
+import 'xlive_switch.dart';
 
-class Switch extends StatelessWidget {
+class DroidSwitch extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
   final Color activeColor;
   final Color unActiveColor;
   final Color? thumbColor;
 
-  const Switch({
+  const DroidSwitch({
     Key? key,
     required this.value,
     required this.onChanged,

@@ -1,7 +1,7 @@
-part of xlive_switch;
+import 'package:flutter/cupertino.dart';
 
-class _XliveThumbPainter {
-  _XliveThumbPainter({
+class XliveThumbPainter {
+  XliveThumbPainter({
     required this.color,
     this.shadowColor = const Color(0x00FFFFFF),
   }) : _shadowPaint = BoxShadow(
