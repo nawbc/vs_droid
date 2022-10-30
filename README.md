@@ -1,16 +1,21 @@
-# vs_droid
+<a href="#" target="_blank" rel="noopener noreferrer">
+<img width="70" src="android/app/src/main/res/drawable/ic_launcher.png" alt="vs droid" /></a>
 
-A new Flutter project.
+<p align="center">
+  <a href="#" target="_blank" rel="noopener noreferrer">
+    <h1 align="center">VS Droid</h1>
+  </a>
+</p>
+
+### Viusal Studio Code for Android.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+## Build
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- [bootstrap]()  this repo forks termux-packages that fixs the network issue. 
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+
+

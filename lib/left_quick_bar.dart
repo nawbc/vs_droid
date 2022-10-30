@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 class LeftQuickBar extends StatefulWidget {
   const LeftQuickBar({Key? key}) : super(key: key);
@@ -25,6 +26,8 @@ class LeftQuickBarState extends State<LeftQuickBar> {
   Widget build(BuildContext context) {
     debugPrint('RightQuickBoard Painted...');
 
+    print(ResponsiveWrapper.of(context).isSmallerThan(DESKTOP));
+
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
         automaticallyImplyLeading: false,
@@ -47,7 +50,13 @@ class LeftQuickBarState extends State<LeftQuickBar> {
             physics: const BouncingScrollPhysics(),
             itemCount: 1,
             itemBuilder: (BuildContext context, int index) {
-              return Container();
+              return TextButton(
+                onPressed: () {
+                  print(MediaQuery.of(context).size.width);
+                  print(ResponsiveWrapper.of(context).isDesktop);
+                },
+                child: Text("demo"),
+              );
               // return InkWell(
               //   onTap: () {
               //     Navigator.of(context, rootNavigator: true).push(

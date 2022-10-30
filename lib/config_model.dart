@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:vs_droid/constant.dart';
+import 'package:vs_droid/store.dart';
 
 class ConfigModel extends ChangeNotifier {
   late Directory _filesDir;
@@ -17,8 +19,18 @@ class ConfigModel extends ChangeNotifier {
   late Directory _termuxHomeDir;
   Directory get termuxHomeDir => _termuxHomeDir;
 
+  late bool _isAppInit;
+  bool get isAppInit => _isAppInit;
+
+  Future<void> setAppInit(bool arg) async {
+    _isAppInit = arg;
+    await Store.setBool(IS_APP_INIT, arg);
+    notifyListeners();
+  }
+
   Future<void> init() async {
     try {
+      _isAppInit = await Store.getBool("is_app_init") ?? false;
       _filesDir = Directory("/data/data/com.deskbtm.vs_droid/files");
       _termuxUsrDir = Directory("${_filesDir.path}/usr");
       _termuxBinDir = Directory("${_filesDir.path}/usr/bin");
