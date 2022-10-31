@@ -104,7 +104,12 @@ class _InnerVSDroid extends State<InnerVSDroid> {
           systemNavigationBarColor: Colors.black,
         ),
         child: CupertinoApp(
-          theme: CupertinoThemeData(primaryColor: themeData.primaryColor),
+          theme: CupertinoThemeData(
+            primaryColor: themeData.primaryColor,
+            textTheme: const CupertinoTextThemeData(
+              textStyle: TextStyle(fontSize: 14),
+            ),
+          ),
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,

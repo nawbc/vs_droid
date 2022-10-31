@@ -7,7 +7,7 @@
     </h1>
 </p>
 
-### Viusal Studio Code for Android.
+### Visual Studio Code for Android.
 
 ## Getting Started
 

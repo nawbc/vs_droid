@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class ListItem extends StatelessWidget {
   final Widget leading;
   final Widget trailing;
+  final Widget? sub;
   final bool dotted;
   final bool require;
   const ListItem({
@@ -12,6 +13,7 @@ class ListItem extends StatelessWidget {
     required this.trailing,
     this.dotted = false,
     this.require = false,
+    this.sub,
   });
 
   @override
@@ -24,7 +26,15 @@ class ListItem extends StatelessWidget {
             Row(
               children: [
                 require ? const Text("*", style: TextStyle(color: Colors.red)) : Container(),
-                leading,
+                const SizedBox(width: 3),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    leading,
+                    const SizedBox(height: 3),
+                    sub ?? Container(),
+                  ],
+                )
               ],
             ),
             trailing

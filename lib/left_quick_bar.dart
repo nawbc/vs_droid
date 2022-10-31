@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:unicons/unicons.dart';
 import 'package:vs_droid/config_model.dart';
 import 'components/switch/switch.dart';
 
@@ -35,6 +36,26 @@ class LeftQuickBarState extends State<LeftQuickBar> {
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          InkWell(
+            onTap: () {},
+            child: ListTile(
+              trailing: CupertinoButton(
+                onPressed: () {},
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  // alignment: WrapAlignment.center,
+                  children: const [Text("Quake mode"), Icon(UniconsLine.bolt, size: 16)],
+                ),
+              ),
+              // CupertinoButton(
+              //   onPressed: () {},
+              //   child: Text("Open"),
+              // ),
+
+              title: const Text("Terminal View"),
+              contentPadding: const EdgeInsets.only(left: 15, right: 25),
+            ),
+          ),
           ListTile(
             trailing: DroidSwitch(
               onChanged: (bool value) {},
@@ -51,7 +72,7 @@ class LeftQuickBarState extends State<LeftQuickBar> {
       navigationBar: const CupertinoNavigationBar(
         automaticallyImplyLeading: false,
         middle: Text(
-          'settings',
+          'Quick',
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             fontWeight: FontWeight.w400,

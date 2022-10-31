@@ -7,10 +7,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pty/flutter_pty.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:unicons/unicons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vs_droid/constant.dart';
 import 'package:vs_droid/distros/alpine.dart';
 import 'package:xterm/core.dart';
 import 'package:xterm/ui.dart';
@@ -18,33 +19,8 @@ import 'components/list.dart';
 import 'components/menu.dart';
 import 'config_model.dart';
 import 'droid_pty.dart';
+import 'theme.dart';
 import 'utils.dart';
-
-const terminalTheme = TerminalTheme(
-  cursor: Color.fromARGB(255, 0, 148, 12),
-  selection: Color(0XFFFFFF40),
-  foreground: Color.fromARGB(255, 66, 66, 66),
-  background: Color(0XFF1E1E1E),
-  black: Color(0XFF000000),
-  red: Color(0XFFCD3131),
-  green: Color(0XFF0DBC79),
-  yellow: Color(0XFFE5E510),
-  blue: Color(0XFF2472C8),
-  magenta: Color(0XFFBC3FBC),
-  cyan: Color(0XFF11A8CD),
-  white: Color(0XFFE5E5E5),
-  brightBlack: Color(0XFF666666),
-  brightRed: Color(0XFFF14C4C),
-  brightGreen: Color(0XFF23D18B),
-  brightYellow: Color(0XFFF5F543),
-  brightBlue: Color(0XFF3B8EEA),
-  brightMagenta: Color(0XFFD670D6),
-  brightCyan: Color(0XFF29B8DB),
-  brightWhite: Color(0XFFFFFFFF),
-  searchHitBackground: Color(0XFFFFFF2B),
-  searchHitBackgroundCurrent: Color(0XFF31FF26),
-  searchHitForeground: Color(0XFF000000),
-);
 
 class InitVscPage extends StatefulWidget {
   const InitVscPage({Key? key}) : super(key: key);
@@ -55,60 +31,33 @@ class InitVscPage extends StatefulWidget {
   }
 }
 
-const rootfsCN = [
-  {
-    "label": "Alpine Linux(default)",
-    "value": "alpine",
-  },
-  {
-    "label": "Manjaro(coming soon)",
-    "value": "manjaro",
-    "url": "https://github.com/manjaro-arm/rootfs/releases",
-  },
-  {
-    "label": "Arch Linux(coming soon)",
-    "value": "arch",
-    "url": "",
-  },
-  {
-    "label": "Debian(coming soon)",
-    "value": "debian",
-    "url": "",
-  },
-  {
-    "label": "Fedora(coming soon)",
-    "value": "fedora",
-    "url": "",
-  },
-  {
-    "label": "OpenSUSE(coming soon)",
-    "value": "openSUSE",
-    "url": "",
-  },
-  {
-    "label": "Ubuntu(coming soon)",
-    "value": "ubuntu",
-    "url": "",
-  },
-];
-
 class _InitVscPageState extends State<InitVscPage> {
   late final Pty _pty;
   late ConfigModel _cm;
   late PlatformFile _rootfsFile;
-  late final List<Map<String, String>> _supportRootfsList = rootfsCN;
-  late List<String> _mirrorList = alpineMirror;
-  String selectMirrorName = "tsinghua";
-  String? _rootfsPath;
+  late List<Map<String, String>> _supportRootfsList;
+  late List<String> _mirrorList;
+  late String _validMirrorName;
+  late String _rootfsPath;
 
   Map<String, String> _rootfsSelection = {
     "label": "Alpine Linux(built-in)",
     "value": "alpine",
   };
 
+  final terminal = Terminal(
+    maxLines: 999999,
+  );
+
+  final terminalController = TerminalController();
+
   @override
   void initState() {
     super.initState();
+    _supportRootfsList = ROOTFS_DOWNLOAD_CN;
+    _validMirrorName = "tsinghua";
+    _mirrorList = ALPINE_MIRROR;
+    _rootfsPath = "alpine";
 
     WidgetsBinding.instance.endOfFrame.then(
       (_) {
@@ -142,10 +91,10 @@ class _InitVscPageState extends State<InitVscPage> {
     List<String> list;
     switch (_rootfsSelection["value"]) {
       case "alpine":
-        list = alpineMirror;
+        list = ALPINE_MIRROR;
         break;
       default:
-        list = alpineMirror;
+        list = ALPINE_MIRROR;
         break;
     }
 
@@ -173,7 +122,12 @@ class _InitVscPageState extends State<InitVscPage> {
             ),
           )
           .toList(),
-      child: Text(name, style: const TextStyle(fontSize: 14, color: Color(0xFF007AFF))),
+      child: Text(
+        name,
+        style: const TextStyle(
+          fontSize: 14,
+        ),
+      ),
     );
   }
 
@@ -190,13 +144,13 @@ class _InitVscPageState extends State<InitVscPage> {
               title: Text(e, style: const TextStyle(fontSize: 14)),
               onPressed: () {
                 setState(() {
-                  selectMirrorName = e;
+                  _validMirrorName = e;
                 });
               },
             ),
           )
           .toList(),
-      child: Text(name, style: const TextStyle(fontSize: 14, color: Color(0xFF007AFF))),
+      child: Text(name, style: const TextStyle(fontSize: 14)),
     );
   }
 
@@ -267,7 +221,7 @@ class _InitVscPageState extends State<InitVscPage> {
     _pseudoWrite("Create home directory successfully");
 
     _pseudoWrite("Start extract assets from bundle...");
-    var a = await rootBundle.load("assets/bootstrap-aarch64.zip");
+    var a = await rootBundle.load("assets/bootstrap-aarch64-$BOOTSTRAP_SEMVER.zip");
     final b = InputStream(a);
     final archive = ZipDecoder().decodeBuffer(b);
     extractArchiveToDisk(archive, _cm.termuxUsrDir.path);
@@ -291,13 +245,11 @@ class _InitVscPageState extends State<InitVscPage> {
     _pseudoWrite("Linking successfully...");
   }
 
-  final terminal = Terminal(
-    maxLines: 999999,
-  );
-
-  final terminalController = TerminalController();
-
   Future<void> _chooseImg() async {
+    if (_rootfsSelection["value"] == "alpine") {
+      Fluttertoast.showToast(msg: "Alpine Linux is built-in");
+      return;
+    }
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['gz', 'xz'],
@@ -334,86 +286,96 @@ class _InitVscPageState extends State<InitVscPage> {
               ),
             ),
             Expanded(
-                child: SingleChildScrollView(
-              child: Center(
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        SizedBox(
-                          height: 30,
-                          child: CupertinoButton.filled(
-                            borderRadius: const BorderRadius.all(Radius.circular(4)),
-                            padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
-                            onPressed: () async {
-                              pty1.exec("pwd");
-                            },
-                            child: const Text('Install', style: TextStyle(fontSize: 15)),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    ListItem(
-                      require: true,
-                      dotted: true,
-                      leading: _rootfsPath != null
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(_rootfsPath!, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-                                const SizedBox(width: 10),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _rootfsPath = null;
-                                    });
-                                  },
-                                  child: Icon(UniconsLine.times_circle, size: 16, color: Colors.red[400]),
-                                ),
-                              ],
-                            )
-                          : Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                _selectRootfs(_rootfsSelection["label"]!),
-                                const SizedBox(width: 10),
-                                _rootfsSelection["value"] != "alpine"
-                                    ? SizedBox(
-                                        height: 20,
-                                        child: CupertinoButton.filled(
-                                          borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                          padding: const EdgeInsets.only(left: 10, right: 10),
-                                          onPressed: () async {
-                                            await launchUrl(Uri.parse(_rootfsSelection["url"]!),
-                                                mode: LaunchMode.externalApplication);
-                                          },
-                                          child: const Text('download', style: TextStyle(fontSize: 15)),
-                                        ),
-                                      )
-                                    : Container(),
-                                const SizedBox(width: 10),
-                              ],
+              child: SingleChildScrollView(
+                child: Center(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          SizedBox(
+                            height: 30,
+                            child: CupertinoButton.filled(
+                              borderRadius: const BorderRadius.all(Radius.circular(4)),
+                              padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
+                              onPressed: () async {
+                                pty1.exec("pwd");
+                              },
+                              child: const Text('Install', style: TextStyle(fontSize: 15)),
                             ),
-                      trailing: CupertinoButton(
-                        onPressed: _chooseImg,
-                        child: const Text('Pick file', style: TextStyle(fontSize: 14)),
+                          ),
+                        ],
                       ),
-                    ),
-                    ListItem(
-                      dotted: true,
-                      leading:
-                          Text('$selectMirrorName  -  ecommend for Chinese (推荐中国地区)', style: TextStyle(fontSize: 14)),
-                      trailing: CupertinoButton(
-                        onPressed: _setMirror,
-                        child: _selectMirror("Select distro pkg mirror"),
+                      const SizedBox(height: 20),
+                      ListItem(
+                        require: true,
+                        dotted: true,
+                        leading: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(_rootfsSelection["label"]!, style: const TextStyle(fontSize: 14)),
+                            const SizedBox(width: 10),
+                            _rootfsSelection["value"] != "alpine"
+                                ? SizedBox(
+                                    height: 20,
+                                    child: CupertinoButton.filled(
+                                      borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                      padding: const EdgeInsets.only(left: 10, right: 10),
+                                      onPressed: () async {
+                                        await launchUrl(Uri.parse(_rootfsSelection["url"]!),
+                                            mode: LaunchMode.externalApplication);
+                                      },
+                                      child: const Text('download', style: TextStyle(fontSize: 15)),
+                                    ),
+                                  )
+                                : Container(),
+                            const SizedBox(width: 10),
+                          ],
+                        ),
+                        trailing: CupertinoButton(
+                          onPressed: _chooseImg,
+                          child: _selectRootfs("Select rootfs"),
+                        ),
                       ),
-                    ),
-                  ],
+                      ListItem(
+                        require: true,
+                        dotted: true,
+                        leading: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(_rootfsPath, style: const TextStyle(color: Colors.grey, fontSize: 14)),
+                          ],
+                        ),
+                        trailing: CupertinoButton(
+                          onPressed: _chooseImg,
+                          child: const Text('Pick file', style: TextStyle(fontSize: 14)),
+                        ),
+                      ),
+                      ListItem(
+                        dotted: true,
+                        leading: Text(_validMirrorName, style: const TextStyle(fontSize: 14)),
+                        sub: const Text("Recommend for Chinese (推荐中国地区)",
+                            style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        trailing: CupertinoButton(
+                          onPressed: _setMirror,
+                          child: _selectMirror("Select termux mirror"),
+                        ),
+                      ),
+                      ListItem(
+                        dotted: true,
+                        leading: Text(_validMirrorName, style: const TextStyle(fontSize: 14)),
+                        sub: const Text("Recommend for Chinese (推荐中国地区)",
+                            style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        trailing: CupertinoButton(
+                          onPressed: _setMirror,
+                          child: _selectMirror("Select rootfs mirror"),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ))
+            )
           ],
         ),
       ),

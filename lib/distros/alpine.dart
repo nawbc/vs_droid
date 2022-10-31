@@ -1,6 +1,7 @@
 import 'dart:io';
 
-List<String> alpineMirror = ["tsinghua", "aliyun", "ustc", "apline"];
+// ignore: constant_identifier_names
+const List<String> ALPINE_MIRROR = ["tsinghua", "aliyun", "ustc", "apline"];
 
 Future<void> setChineseAlpineMirror(String usr, [String? mirror]) async {
   String mirrorUrl;
