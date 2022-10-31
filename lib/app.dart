@@ -15,8 +15,8 @@ import 'config_model.dart';
 import 'constant.dart';
 import 'double_pop.dart';
 import 'error.dart';
-import 'home.dart';
-import 'init_vsc.dart';
+import 'vsc_page.dart';
+import 'init_vsc_page.dart';
 import 'inner_drawer.dart';
 import 'left_quick_bar.dart';
 import 'theme.dart';
@@ -200,7 +200,7 @@ class _Home extends State<Home> {
                 alignment: Alignment.center,
                 fit: StackFit.expand,
                 children: [
-                  snapshot.data == true ? const HomePage() : const InitVscPage(),
+                  snapshot.data == true ? const VscPage() : const InitVscPage(),
                   Positioned(
                     top: 25,
                     left: 20,

@@ -17,6 +17,7 @@ import 'package:xterm/ui.dart';
 import 'components/list.dart';
 import 'components/menu.dart';
 import 'config_model.dart';
+import 'droid_pty.dart';
 import 'utils.dart';
 
 const terminalTheme = TerminalTheme(
@@ -92,7 +93,7 @@ const rootfsCN = [
 ];
 
 class _InitVscPageState extends State<InitVscPage> {
-  late final Pty pty;
+  late final Pty _pty;
   late ConfigModel _cm;
   late PlatformFile _rootfsFile;
   late final List<Map<String, String>> _supportRootfsList = rootfsCN;
@@ -117,24 +118,23 @@ class _InitVscPageState extends State<InitVscPage> {
   }
 
   void _startPty() {
-    pty = Pty.start(
+    _pty = Pty.start(
       "sh",
       columns: terminal.viewWidth,
       rows: terminal.viewHeight,
       environment: {"TERM": "xterm-256color"},
     );
 
-    pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
-      log(data);
+    _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
       terminal.write(data);
     });
 
-    pty.exitCode.then((code) {
+    _pty.exitCode.then((code) {
       terminal.write('the process exited with exit code $code');
     });
 
     terminal.onResize = (w, h, pw, ph) {
-      pty.resize(h, w);
+      _pty.resize(h, w);
     };
   }
 
@@ -200,10 +200,18 @@ class _InitVscPageState extends State<InitVscPage> {
     );
   }
 
+  late DroidPty pty1;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _cm = Provider.of<ConfigModel>(context);
+
+    pty1 = DroidPty(context);
+
+    pty1.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
+      log(data);
+    });
+
     _pseudoWrite("Linux runtime is not installed");
     _pseudoWrite("Setting required options and tapping install button to init environment...");
   }
@@ -338,7 +346,9 @@ class _InitVscPageState extends State<InitVscPage> {
                           child: CupertinoButton.filled(
                             borderRadius: const BorderRadius.all(Radius.circular(4)),
                             padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
-                            onPressed: () {},
+                            onPressed: () async {
+                              pty1.exec("pwd");
+                            },
                             child: const Text('Install', style: TextStyle(fontSize: 15)),
                           ),
                         ),

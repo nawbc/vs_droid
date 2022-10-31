@@ -26,10 +26,10 @@ class DroidPty {
     env['SHELL'] = "${_cm.termuxBinDir.path}/bash";
     env['TERMUX_PREFIX'] = _cm.termuxUsrDir.path;
 
-    _pty = Pty.start("${_cm.termuxBinDir.path}/bash", environment: env, workingDirectory: _cm.termuxUsrDir.path);
+    _pty = Pty.start("${_cm.termuxBinDir.path}/bash", environment: env, workingDirectory: _cm.termuxHomeDir.path);
   }
 
-  void exec(String shell) => _pty.write(const Utf8Encoder().convert(shell));
+  void exec(String shell) => _pty.write(const Utf8Encoder().convert("$shell\n"));
 
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) => _pty.kill(signal);
 

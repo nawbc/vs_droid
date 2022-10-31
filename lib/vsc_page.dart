@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:vs_droid/inner_drawer.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class VscPage extends StatefulWidget {
+  const VscPage({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return _HomePageState();
+    return _VscPageState();
   }
 }
 
-class _HomePageState extends State<HomePage> {
+class _VscPageState extends State<VscPage> {
   final GlobalKey<InnerDrawerState> _innerDrawerKey = GlobalKey<InnerDrawerState>();
 
   @override
