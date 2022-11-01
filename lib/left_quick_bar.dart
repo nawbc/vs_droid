@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:unicons/unicons.dart';
 import 'package:vs_droid/config_model.dart';
+import 'package:vs_droid/terminal_page.dart';
 import 'components/switch/switch.dart';
 
 class LeftQuickBar extends StatefulWidget {
@@ -37,22 +38,26 @@ class LeftQuickBarState extends State<LeftQuickBar> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           InkWell(
-            onTap: () {},
+            onTap: () async {
+              await Navigator.of(context).push(
+                CupertinoPageRoute<void>(
+                  maintainState: false,
+                  builder: (BuildContext context) {
+                    return const TerminalPage();
+                  },
+                ),
+              );
+            },
             child: ListTile(
               trailing: CupertinoButton(
-                onPressed: () {},
+                onPressed: () async {},
                 child: Wrap(
                   crossAxisAlignment: WrapCrossAlignment.center,
                   // alignment: WrapAlignment.center,
                   children: const [Text("Quake mode"), Icon(UniconsLine.bolt, size: 16)],
                 ),
               ),
-              // CupertinoButton(
-              //   onPressed: () {},
-              //   child: Text("Open"),
-              // ),
-
-              title: const Text("Terminal View"),
+              title: const Text("Terminal View", style: TextStyle(fontSize: 14)),
               contentPadding: const EdgeInsets.only(left: 15, right: 25),
             ),
           ),
@@ -61,7 +66,7 @@ class LeftQuickBarState extends State<LeftQuickBar> {
               onChanged: (bool value) {},
               value: false,
             ),
-            title: const Text("Allow Lan"),
+            title: const Text("Allow Lan", style: TextStyle(fontSize: 14)),
             contentPadding: const EdgeInsets.only(left: 15, right: 25),
           ),
         ],

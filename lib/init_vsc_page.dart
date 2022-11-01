@@ -160,12 +160,6 @@ class _InitVscPageState extends State<InitVscPage> {
     super.didChangeDependencies();
     _cm = Provider.of<ConfigModel>(context);
 
-    pty1 = DroidPty(context);
-
-    pty1.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
-      log(data);
-    });
-
     _pseudoWrite("Linux runtime is not installed");
     _pseudoWrite("Setting required options and tapping install button to init environment...");
   }
@@ -215,7 +209,7 @@ class _InitVscPageState extends State<InitVscPage> {
     terminal.write(r"$: " + data);
   }
 
-  Future<void> _extractAssets() async {
+  Future<void> _extractBootstrap() async {
     await _cm.termuxHomeDir.create(recursive: true);
     await chmod(_cm.termuxHomeDir.path, "755").catchError((err) {});
     _pseudoWrite("Create home directory successfully");
@@ -224,7 +218,21 @@ class _InitVscPageState extends State<InitVscPage> {
     var a = await rootBundle.load("assets/bootstrap-aarch64-$BOOTSTRAP_SEMVER.zip");
     final b = InputStream(a);
     final archive = ZipDecoder().decodeBuffer(b);
-    extractArchiveToDisk(archive, _cm.termuxUsrDir.path);
+
+    // Extract the contents of the Zip archive to disk.
+    for (final file in archive) {
+      final filename = file.name;
+      if (file.isFile) {
+        final data = file.content as List<int>;
+        File(p.join(_cm.termuxUsrDir.path, filename))
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(data);
+      } else {
+        Directory(p.join(_cm.termuxUsrDir.path, filename)).create(recursive: true);
+      }
+    }
+    // final archive = ZipDecoder().decodeBuffer(b);
+    // extractArchiveToDisk(archive, _cm.termuxUsrDir.path);
     await chmod(_cm.termuxUsrDir.path, "755").catchError((err) {});
     _pseudoWrite("Extract bootstrap-aarch64 successfully...");
   }
@@ -233,7 +241,7 @@ class _InitVscPageState extends State<InitVscPage> {
     if (await _cm.termuxUsrDir.exists()) {
       return;
     }
-    await _extractAssets().catchError((err) {
+    await _extractBootstrap().catchError((err) {
       _pseudoWrite("Extract assets failed");
       _pseudoWrite(err);
     });
@@ -299,7 +307,26 @@ class _InitVscPageState extends State<InitVscPage> {
                               borderRadius: const BorderRadius.all(Radius.circular(4)),
                               padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
                               onPressed: () async {
-                                pty1.exec("pwd");
+                                // await _prepareEnv();
+                                // await chmod("${_cm.termuxHomeDir.path}/talloc.deb", "755");
+                                // final a = await rootBundle.load("assets/proot_${PROOT_SEMVER}_aarch64.deb");
+                                // final b = File("${_cm.termuxHomeDir.path}/proot.deb");
+                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
+                                // final a = await rootBundle.load("assets/libtalloc_${TALLOC_SEMVER}_aarch64.deb");
+                                // final b = File("${_cm.termuxHomeDir.path}/talloc.deb");
+                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
+                                // final a = await rootBundle.load("assets/proot-distro_${PROOT_DISTRO_SEMVER}_all.deb");
+                                // final b = File("${_cm.termuxHomeDir.path}/proot-distro.deb");
+                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
+                                // await chmod("${_cm.termuxHomeDir.path}/proot-distro.deb", "755");
+                                // final a = await rootBundle.load("assets/ncurses-utils_${NCURSES_UTILS_SEMVER}_aarch64.deb");
+                                // final b = File("${_cm.termuxHomeDir.path}/ncurses-utils.deb");
+                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
+                                // await chmod("${_cm.termuxHomeDir.path}/ncurses-utils.deb", "755");
+                                final a = await rootBundle.load("assets/ncurses_${NCURSES_SEMVER}_aarch64.deb");
+                                final b = File("${_cm.termuxHomeDir.path}/ncurses.deb");
+                                await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
+                                await chmod("${_cm.termuxHomeDir.path}/ncurses.deb", "755");
                               },
                               child: const Text('Install', style: TextStyle(fontSize: 15)),
                             ),
@@ -313,7 +340,7 @@ class _InitVscPageState extends State<InitVscPage> {
                         leading: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(_rootfsSelection["label"]!, style: const TextStyle(fontSize: 14)),
+                            Text(_rootfsSelection["label"]!, style: const TextStyle(fontSize: 14, color: Colors.black)),
                             const SizedBox(width: 10),
                             _rootfsSelection["value"] != "alpine"
                                 ? SizedBox(
@@ -349,16 +376,6 @@ class _InitVscPageState extends State<InitVscPage> {
                         trailing: CupertinoButton(
                           onPressed: _chooseImg,
                           child: const Text('Pick file', style: TextStyle(fontSize: 14)),
-                        ),
-                      ),
-                      ListItem(
-                        dotted: true,
-                        leading: Text(_validMirrorName, style: const TextStyle(fontSize: 14)),
-                        sub: const Text("Recommend for Chinese (推荐中国地区)",
-                            style: TextStyle(fontSize: 12, color: Colors.grey)),
-                        trailing: CupertinoButton(
-                          onPressed: _setMirror,
-                          child: _selectMirror("Select termux mirror"),
                         ),
                       ),
                       ListItem(

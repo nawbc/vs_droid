@@ -1,6 +1,8 @@
 // ignore_for_file: constant_identifier_names
 
 const IS_APP_INIT = 'is_app_init';
+const TERMINAL_QUAKE_MODE = 'terminal_quake_mode';
+const SERVER_PORT = 'server_port';
 
 const String SENTRY_DNS = 'https://af5cdd26b94d447c9d25633109067c56@o532771.ingest.sentry.io/4504020304986112';
 
@@ -12,7 +14,11 @@ const String DARK_THEME = 'dark';
 
 const ALPINE_SEMVER = "v3.16.2";
 const BOOTSTRAP_SEMVER = "2022.10.23-r1+apt-android-7";
-const PROOT_DISTRO_SEMVER = "v3.2.1";
+const PROOT_DISTRO_SEMVER = "3.1.0";
+const PROOT_SEMVER = "5.1.107-54";
+const NCURSES_SEMVER = "6.3-2";
+const NCURSES_UTILS_SEMVER = "6.3-2";
+const TALLOC_SEMVER = "2.3.3";
 
 const ROOTFS_DOWNLOAD_CN = [
   {

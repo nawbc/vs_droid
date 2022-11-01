@@ -24,12 +24,20 @@ class ConfigModel extends ChangeNotifier {
   late String _internalIP;
   String? get internalIP => _internalIP;
 
+  late bool _terminalQuakeMode;
+  bool get terminalQuakeMode => _terminalQuakeMode;
+  Future<void> setTerminalQuakeMode(bool mode) async {
+    _terminalQuakeMode = mode;
+    await Store.setBool(TERMINAL_QUAKE_MODE, mode);
+  }
+
   // Export Code Server to Lan
   late String _serverPort;
   String get serverPort => _serverPort;
 
-  void setServerPort(String port) {
+  Future<void> setServerPort(String port) async {
     _serverPort = port;
+    await Store.setString(SERVER_PORT, port);
   }
 
   void setInternalIP(String arg) {
@@ -44,8 +52,9 @@ class ConfigModel extends ChangeNotifier {
 
   Future<void> init() async {
     try {
-      _isAppInit = await Store.getBool("is_app_init") ?? false;
-      _serverPort = await Store.getString("server_port") ?? "20771";
+      _terminalQuakeMode = await Store.getBool(TERMINAL_QUAKE_MODE) ?? false;
+      _isAppInit = await Store.getBool(IS_APP_INIT) ?? false;
+      _serverPort = await Store.getString(SERVER_PORT) ?? "20771";
       _filesDir = Directory("/data/data/com.deskbtm.vs_droid/files");
       _termuxUsrDir = Directory("${_filesDir.path}/usr");
       _termuxBinDir = Directory("${_filesDir.path}/usr/bin");

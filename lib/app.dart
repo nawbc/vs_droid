@@ -61,7 +61,6 @@ class InnerVSDroid extends StatefulWidget {
 class _InnerVSDroid extends State<InnerVSDroid> {
   late ConfigModel _cm;
   late ThemeModel _tm;
-  final GlobalKey<InnerDrawerState> _innerDrawerKey = GlobalKey<InnerDrawerState>();
   late StreamSubscription<ConnectivityResult> _connectSubscription;
   late bool _modelInited;
 
