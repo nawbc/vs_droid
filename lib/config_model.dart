@@ -21,8 +21,21 @@ class ConfigModel extends ChangeNotifier {
   late bool _isAppInit;
   bool get isAppInit => _isAppInit;
 
+  Future<void> setAppInit(bool arg) async {
+    _isAppInit = arg;
+    await Store.setBool(IS_APP_INIT, arg);
+    notifyListeners();
+  }
+
   late String _internalIP;
   String? get internalIP => _internalIP;
+
+  void setInternalIP(String arg, {bool notify = false}) {
+    _internalIP = arg;
+    if (notify) {
+      notifyListeners();
+    }
+  }
 
   late bool _terminalQuakeMode;
   bool get terminalQuakeMode => _terminalQuakeMode;
@@ -38,16 +51,6 @@ class ConfigModel extends ChangeNotifier {
   Future<void> setServerPort(String port) async {
     _serverPort = port;
     await Store.setString(SERVER_PORT, port);
-  }
-
-  void setInternalIP(String arg) {
-    _internalIP = arg;
-  }
-
-  Future<void> setAppInit(bool arg) async {
-    _isAppInit = arg;
-    await Store.setBool(IS_APP_INIT, arg);
-    notifyListeners();
   }
 
   Future<void> init() async {

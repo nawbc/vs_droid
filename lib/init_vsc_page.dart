@@ -6,7 +6,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_pty/flutter_pty.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart' as p;
@@ -22,6 +21,15 @@ import 'droid_pty.dart';
 import 'theme.dart';
 import 'utils.dart';
 
+const ASSETS = [
+  "libtalloc_${TALLOC_SEMVER}_aarch64.deb",
+  "ncurses_${NCURSES_SEMVER}_aarch64.deb",
+  "ncurses-utils_${NCURSES_UTILS_SEMVER}_aarch64.deb",
+  "proot_${PROOT_SEMVER}_aarch64.deb",
+  "proot-distro_${PROOT_DISTRO_SEMVER}_all.deb",
+  "alpine-aarch64-$ALPINE_SEMVER.tar.xz"
+];
+
 class InitVscPage extends StatefulWidget {
   const InitVscPage({Key? key}) : super(key: key);
 
@@ -32,7 +40,7 @@ class InitVscPage extends StatefulWidget {
 }
 
 class _InitVscPageState extends State<InitVscPage> {
-  late final Pty _pty;
+  late final DroidPty _pty;
   late ConfigModel _cm;
   late PlatformFile _rootfsFile;
   late List<Map<String, String>> _supportRootfsList;
@@ -58,24 +66,27 @@ class _InitVscPageState extends State<InitVscPage> {
     _validMirrorName = "tsinghua";
     _mirrorList = ALPINE_MIRROR;
     _rootfsPath = "alpine";
+  }
 
-    WidgetsBinding.instance.endOfFrame.then(
-      (_) {
-        if (mounted) _startPty();
-      },
-    );
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _cm = Provider.of<ConfigModel>(context);
+    _startPty();
+
+    _pseudoWrite("Linux runtime is not installed");
+    _pseudoWrite("Setting required options and tapping install button to init environment...");
   }
 
   void _startPty() {
-    _pty = Pty.start(
-      "sh",
+    _pty = DroidPty(
+      context,
       columns: terminal.viewWidth,
       rows: terminal.viewHeight,
-      environment: {"TERM": "xterm-256color"},
     );
 
     _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
-      terminal.write(data);
+      // terminal.write(data);
     });
 
     _pty.exitCode.then((code) {
@@ -85,6 +96,14 @@ class _InitVscPageState extends State<InitVscPage> {
     terminal.onResize = (w, h, pw, ph) {
       _pty.resize(h, w);
     };
+  }
+
+  Future<void> deleteRootfs() async {
+    _pseudoWrite("rm -rf ${_cm.termuxUsrDir.path}");
+    _pseudoWrite("rm -rf ${_cm.termuxHomeDir.path}...");
+    await File(_cm.termuxUsrDir.path).delete(recursive: true);
+    await File(_cm.termuxHomeDir.path).delete(recursive: true);
+    _pseudoWrite("remove successfully...");
   }
 
   void _setMirror() {
@@ -154,16 +173,6 @@ class _InitVscPageState extends State<InitVscPage> {
     );
   }
 
-  late DroidPty pty1;
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _cm = Provider.of<ConfigModel>(context);
-
-    _pseudoWrite("Linux runtime is not installed");
-    _pseudoWrite("Setting required options and tapping install button to init environment...");
-  }
-
   Future<void> _createRootfsSymlink() async {
     File symLinks = File("${_cm.termuxUsrDir.path}/SYMLINKS.txt");
     Map map = {};
@@ -206,7 +215,7 @@ class _InitVscPageState extends State<InitVscPage> {
 
   _pseudoWrite(String data) {
     terminal.write("\r\n");
-    terminal.write(r"$: " + data);
+    terminal.write(r"~$: " + data);
   }
 
   Future<void> _extractBootstrap() async {
@@ -237,7 +246,7 @@ class _InitVscPageState extends State<InitVscPage> {
     _pseudoWrite("Extract bootstrap-aarch64 successfully...");
   }
 
-  Future<void> _prepareEnv() async {
+  Future<void> _prepareAssets() async {
     if (await _cm.termuxUsrDir.exists()) {
       return;
     }
@@ -251,6 +260,16 @@ class _InitVscPageState extends State<InitVscPage> {
       _pseudoWrite(err);
     });
     _pseudoWrite("Linking successfully...");
+
+    await for (var ele in Stream.fromIterable(ASSETS)) {
+      var a = await rootBundle.load("assets/$ele");
+      var b = File("${_cm.termuxHomeDir.path}/$ele");
+      await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
+    }
+  }
+
+  Future<void> _install() async {
+    await _prepareAssets();
   }
 
   Future<void> _chooseImg() async {
@@ -303,10 +322,21 @@ class _InitVscPageState extends State<InitVscPage> {
                         children: [
                           SizedBox(
                             height: 30,
+                            child: CupertinoButton(
+                              padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
+                              onPressed: deleteRootfs,
+                              child: Text('Delete rootfs', style: TextStyle(fontSize: 15, color: Colors.red[800])),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          SizedBox(
+                            height: 30,
                             child: CupertinoButton.filled(
                               borderRadius: const BorderRadius.all(Radius.circular(4)),
                               padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
                               onPressed: () async {
+                                // _pty.output.last.
+
                                 // await _prepareEnv();
                                 // await chmod("${_cm.termuxHomeDir.path}/talloc.deb", "755");
                                 // final a = await rootBundle.load("assets/proot_${PROOT_SEMVER}_aarch64.deb");
@@ -323,10 +353,14 @@ class _InitVscPageState extends State<InitVscPage> {
                                 // final b = File("${_cm.termuxHomeDir.path}/ncurses-utils.deb");
                                 // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
                                 // await chmod("${_cm.termuxHomeDir.path}/ncurses-utils.deb", "755");
-                                final a = await rootBundle.load("assets/ncurses_${NCURSES_SEMVER}_aarch64.deb");
-                                final b = File("${_cm.termuxHomeDir.path}/ncurses.deb");
-                                await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
-                                await chmod("${_cm.termuxHomeDir.path}/ncurses.deb", "755");
+                                // final a = await rootBundle.load("assets/ncurses_${NCURSES_SEMVER}_aarch64.deb");
+                                // final b = File("${_cm.termuxHomeDir.path}/ncurses.deb");
+                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
+                                // await chmod("${_cm.termuxHomeDir.path}/ncurses.deb", "755");
+                                // final a = await rootBundle.load("assets/alpine-aarch64-$ALPINE_SEMVER.tar.xz");
+                                // final b = File("${_cm.termuxHomeDir.path}/alpine.tar.xz");
+                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
+                                // await chmod("${_cm.termuxHomeDir.path}/ncurses.deb", "755");
                               },
                               child: const Text('Install', style: TextStyle(fontSize: 15)),
                             ),

@@ -61,14 +61,7 @@ class InnerVSDroid extends StatefulWidget {
 class _InnerVSDroid extends State<InnerVSDroid> {
   late ConfigModel _cm;
   late ThemeModel _tm;
-  late StreamSubscription<ConnectivityResult> _connectSubscription;
   late bool _modelInited;
-
-  @override
-  dispose() {
-    super.dispose();
-    _connectSubscription.cancel();
-  }
 
   @override
   void didChangeDependencies() async {
@@ -106,7 +99,7 @@ class _InnerVSDroid extends State<InnerVSDroid> {
           theme: CupertinoThemeData(
             primaryColor: themeData.primaryColor,
             textTheme: const CupertinoTextThemeData(
-              textStyle: TextStyle(fontSize: 14),
+              textStyle: TextStyle(fontSize: 14, color: Color(0xFF131313)),
             ),
           ),
           localizationsDelegates: const [
@@ -129,7 +122,7 @@ class _InnerVSDroid extends State<InnerVSDroid> {
                 const ResponsiveBreakpoint.autoScale(800, name: TABLET),
                 const ResponsiveBreakpoint.resize(1200, name: DESKTOP),
               ],
-              background: Container(color: const Color(0xFFF5F5F5)),
+              background: Container(color: _tm.themeData.scaffoldBackgroundColor),
             );
           },
           home: DoublePop(child: const Home()),
@@ -150,28 +143,49 @@ class Home extends StatefulWidget {
 
 class _Home extends State<Home> {
   late ConfigModel _cm;
+  late ThemeModel _tm;
+  late StreamSubscription<ConnectivityResult> _connectSubscription;
 
   final GlobalKey<InnerDrawerState> _innerDrawerKey = GlobalKey<InnerDrawerState>();
 
-  Future<void> _setInternalIp(ConnectivityResult? result) async {
+  Future<void> _setInternalIp(ConnectivityResult? result, {bool notify = true}) async {
     if (result == ConnectivityResult.wifi) {
       final info = NetworkInfo();
       var wifiIP = await info.getWifiIP() ?? await getInternalIp() ?? LOOPBACK_ADDR;
-      _cm.setInternalIP(wifiIP);
+      _cm.setInternalIP(wifiIP, notify: notify);
     }
   }
 
   Future<bool> appInit() async {
     var result = await Connectivity().checkConnectivity();
-    await _setInternalIp(result).catchError((err) {});
+    await _setInternalIp(result, notify: false).catchError((err) {});
 
     return await _cm.termuxUsrDir.exists() && _cm.isAppInit;
+  }
+
+  @override
+  dispose() {
+    super.dispose();
+    _connectSubscription.cancel();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.endOfFrame.then(
+      (_) {
+        if (mounted) {
+          _connectSubscription = Connectivity().onConnectivityChanged.listen(_setInternalIp);
+        }
+      },
+    );
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _cm = Provider.of<ConfigModel>(context);
+    _tm = Provider.of<ThemeModel>(context);
   }
 
   @override
@@ -184,47 +198,52 @@ class _Home extends State<Home> {
             return const ErrorBoard();
           }
 
-          return InnerDrawer(
-            key: _innerDrawerKey,
-            onTapClose: true,
-            swipe: false,
-            boxShadow: const [],
-            colorTransitionChild: Colors.transparent,
-            colorTransitionScaffold: Colors.transparent,
-            offset: const IDOffset.only(top: 0.2, right: 0, left: 0),
-            scale: const IDOffset.horizontal(1),
-            proportionalChildArea: true,
-            borderRadius: 8,
-            leftAnimationType: InnerDrawerAnimation.quadratic,
-            rightAnimationType: InnerDrawerAnimation.quadratic,
-            backgroundDecoration: const BoxDecoration(color: Colors.white),
-            leftChild: const LeftQuickBar(),
-            scaffold: CupertinoPageScaffold(
-              child: Stack(
-                alignment: Alignment.center,
-                fit: StackFit.expand,
-                children: [
-                  snapshot.data == true ? const VscPage() : const InitVscPage(),
-                  Positioned(
-                    top: 25,
-                    left: 20,
-                    child: GestureDetector(
-                      onTap: () {
-                        _innerDrawerKey.currentState?.open();
-                      },
-                      child: const Icon(
-                        UniconsLine.bars,
-                        color: Color(0xFF4285f4),
-                        size: 26,
+          return GestureDetector(
+            onTap: () {
+              FocusScope.of(context).requestFocus(FocusNode());
+            },
+            child: InnerDrawer(
+              key: _innerDrawerKey,
+              onTapClose: true,
+              swipe: false,
+              boxShadow: const [],
+              colorTransitionChild: Colors.transparent,
+              colorTransitionScaffold: Colors.transparent,
+              offset: const IDOffset.only(top: 0.2, right: 0, left: 0),
+              scale: const IDOffset.horizontal(1),
+              proportionalChildArea: true,
+              borderRadius: 8,
+              leftAnimationType: InnerDrawerAnimation.quadratic,
+              rightAnimationType: InnerDrawerAnimation.quadratic,
+              backgroundDecoration: const BoxDecoration(color: Colors.white),
+              leftChild: const LeftQuickBar(),
+              scaffold: CupertinoPageScaffold(
+                child: Stack(
+                  alignment: Alignment.center,
+                  fit: StackFit.expand,
+                  children: [
+                    snapshot.data == true ? const VscPage() : const InitVscPage(),
+                    Positioned(
+                      top: 25,
+                      left: 20,
+                      child: GestureDetector(
+                        onTap: () {
+                          _innerDrawerKey.currentState?.open();
+                        },
+                        child: const Icon(
+                          UniconsLine.bars,
+                          color: Color(0xFF4285f4),
+                          size: 26,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
         } else {
-          return Container();
+          return Container(color: _tm.themeData.scaffoldBackgroundColor);
         }
       },
     );
