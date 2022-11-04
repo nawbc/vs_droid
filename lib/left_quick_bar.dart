@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -28,12 +30,13 @@ class LeftQuickBarState extends State<LeftQuickBar> {
   void initState() {
     super.initState();
     _f1.addListener(() {
-      if (!_f1.hasFocus) {}
-      setState(() {});
+      if (!_f1.hasFocus && mounted) {
+        _cm.setInternalIP(_c1.text);
+      }
     });
     _f2.addListener(() {
-      if (!_f1.hasFocus) {}
-      setState(() {});
+      if (!_f1.hasFocus && mounted) {}
+      _cm.setServerPort(_c2.text);
     });
   }
 
@@ -41,7 +44,8 @@ class LeftQuickBarState extends State<LeftQuickBar> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _cm = Provider.of<ConfigModel>(context);
-    // _c1. = _cm.internalIP;
+    _c1.text = _cm.internalIP!;
+    _c2.text = _cm.serverPort;
   }
 
   @override
@@ -89,7 +93,8 @@ class LeftQuickBarState extends State<LeftQuickBar> {
               onChanged: (bool value) {},
               value: false,
             ),
-            subtitle: Row(
+            subtitle: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 const Text("Host: "),
                 SizedBox(

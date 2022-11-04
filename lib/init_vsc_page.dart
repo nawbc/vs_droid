@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:ui';
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,6 +15,8 @@ import 'package:vs_droid/constant.dart';
 import 'package:vs_droid/distros/alpine.dart';
 import 'package:xterm/core.dart';
 import 'package:xterm/ui.dart';
+import 'components/dialog.dart';
+import 'components/droid_modal.dart';
 import 'components/list.dart';
 import 'components/menu.dart';
 import 'config_model.dart';
@@ -220,7 +223,6 @@ class _InitVscPageState extends State<InitVscPage> {
 
   Future<void> _extractBootstrap() async {
     await _cm.termuxHomeDir.create(recursive: true);
-    await chmod(_cm.termuxHomeDir.path, "755").catchError((err) {});
     _pseudoWrite("Create home directory successfully");
 
     _pseudoWrite("Start extract assets from bundle...");
@@ -240,9 +242,7 @@ class _InitVscPageState extends State<InitVscPage> {
         Directory(p.join(_cm.termuxUsrDir.path, filename)).create(recursive: true);
       }
     }
-    // final archive = ZipDecoder().decodeBuffer(b);
-    // extractArchiveToDisk(archive, _cm.termuxUsrDir.path);
-    await chmod(_cm.termuxUsrDir.path, "755").catchError((err) {});
+
     _pseudoWrite("Extract bootstrap-aarch64 successfully...");
   }
 
@@ -270,6 +270,8 @@ class _InitVscPageState extends State<InitVscPage> {
 
   Future<void> _install() async {
     await _prepareAssets();
+    await chmod(_cm.termuxHomeDir.path, "755").catchError((err) {});
+    await chmod(_cm.termuxUsrDir.path, "755").catchError((err) {});
   }
 
   Future<void> _chooseImg() async {
@@ -318,52 +320,42 @@ class _InitVscPageState extends State<InitVscPage> {
                   child: Column(
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          SizedBox(
-                            height: 30,
-                            child: CupertinoButton(
-                              padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
-                              onPressed: deleteRootfs,
-                              child: Text('Delete rootfs', style: TextStyle(fontSize: 15, color: Colors.red[800])),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          SizedBox(
-                            height: 30,
-                            child: CupertinoButton.filled(
-                              borderRadius: const BorderRadius.all(Radius.circular(4)),
-                              padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
-                              onPressed: () async {
-                                // _pty.output.last.
-
-                                // await _prepareEnv();
-                                // await chmod("${_cm.termuxHomeDir.path}/talloc.deb", "755");
-                                // final a = await rootBundle.load("assets/proot_${PROOT_SEMVER}_aarch64.deb");
-                                // final b = File("${_cm.termuxHomeDir.path}/proot.deb");
-                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
-                                // final a = await rootBundle.load("assets/libtalloc_${TALLOC_SEMVER}_aarch64.deb");
-                                // final b = File("${_cm.termuxHomeDir.path}/talloc.deb");
-                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
-                                // final a = await rootBundle.load("assets/proot-distro_${PROOT_DISTRO_SEMVER}_all.deb");
-                                // final b = File("${_cm.termuxHomeDir.path}/proot-distro.deb");
-                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
-                                // await chmod("${_cm.termuxHomeDir.path}/proot-distro.deb", "755");
-                                // final a = await rootBundle.load("assets/ncurses-utils_${NCURSES_UTILS_SEMVER}_aarch64.deb");
-                                // final b = File("${_cm.termuxHomeDir.path}/ncurses-utils.deb");
-                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
-                                // await chmod("${_cm.termuxHomeDir.path}/ncurses-utils.deb", "755");
-                                // final a = await rootBundle.load("assets/ncurses_${NCURSES_SEMVER}_aarch64.deb");
-                                // final b = File("${_cm.termuxHomeDir.path}/ncurses.deb");
-                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
-                                // await chmod("${_cm.termuxHomeDir.path}/ncurses.deb", "755");
-                                // final a = await rootBundle.load("assets/alpine-aarch64-$ALPINE_SEMVER.tar.xz");
-                                // final b = File("${_cm.termuxHomeDir.path}/alpine.tar.xz");
-                                // await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
-                                // await chmod("${_cm.termuxHomeDir.path}/ncurses.deb", "755");
-                              },
-                              child: const Text('Install', style: TextStyle(fontSize: 15)),
-                            ),
+                          const Text('Recommended defaults', style: TextStyle(fontSize: 15)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                height: 30,
+                                child: CupertinoButton(
+                                  padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
+                                  onPressed: deleteRootfs,
+                                  child: Text('Delete rootfs', style: TextStyle(fontSize: 15, color: Colors.red[800])),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              SizedBox(
+                                height: 30,
+                                child: CupertinoButton.filled(
+                                  borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                  padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
+                                  onPressed: () async {
+                                    showDroidModal(
+                                      context: context,
+                                      filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
+                                      builder: (BuildContext context) {
+                                        return DroidDialog(
+                                          children: [],
+                                          onOk: () {},
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: const Text('Install', style: TextStyle(fontSize: 15)),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

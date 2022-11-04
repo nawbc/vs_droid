@@ -1,8 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 
-class CupertinoModalPopupRoute2<T> extends PopupRoute<T> {
-  CupertinoModalPopupRoute2({
+import '../theme.dart';
+import '../theme_model.dart';
+
+class DroidModalPopupRoute<T> extends PopupRoute<T> {
+  DroidModalPopupRoute({
     required this.barrierColor,
     this.barrierLabel,
     required this.builder,
@@ -32,7 +36,7 @@ class CupertinoModalPopupRoute2<T> extends PopupRoute<T> {
   bool get semanticsDismissible => _semanticsDismissible ?? false;
 
   @override
-  Duration get transitionDuration => Duration(milliseconds: 0);
+  Duration get transitionDuration => const Duration(milliseconds: 0);
 
   late Animation<double> _animation;
 
@@ -71,4 +75,26 @@ class CupertinoModalPopupRoute2<T> extends PopupRoute<T> {
       ),
     );
   }
+}
+
+Future<T?> showDroidModal<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  required ImageFilter filter,
+  bool useRootNavigator = true,
+  bool? semanticsDismissible,
+  bool transparent = false,
+}) {
+  ThemeModel themeModel = Provider.of<ThemeModel>(context, listen: false);
+  DroidTheme themeData = themeModel.themeData;
+
+  return Navigator.of(context, rootNavigator: useRootNavigator).push(
+    DroidModalPopupRoute<T>(
+      barrierColor: transparent ? const Color(0x00382F2F) : themeData.modalColor(context),
+      barrierLabel: 'Dismiss',
+      builder: builder,
+      filter: filter,
+      semanticsDismissible: semanticsDismissible,
+    ),
+  );
 }

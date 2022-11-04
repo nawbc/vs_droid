@@ -1,9 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart';
 
 abstract class DroidTheme {
   late Color primaryColor;
   late Color scaffoldBackgroundColor;
+  Color modalColor(context);
 }
 
 class LightTheme implements DroidTheme {
@@ -11,6 +13,17 @@ class LightTheme implements DroidTheme {
   Color primaryColor = const Color(0xFF007AFF);
   @override
   Color scaffoldBackgroundColor = const Color(0xfffffffff);
+
+  @override
+  Color modalColor(context) {
+    return CupertinoDynamicColor.resolve(
+      const CupertinoDynamicColor.withBrightness(
+        color: Color(0x2A9B9B9B),
+        darkColor: Color(0x5D8F8F8F),
+      ),
+      context,
+    );
+  }
 }
 
 class DarkTheme implements DroidTheme {
@@ -18,6 +31,17 @@ class DarkTheme implements DroidTheme {
   Color primaryColor = const Color(0xFF007AFF);
   @override
   Color scaffoldBackgroundColor = const Color(0xff0000000);
+
+  @override
+  Color modalColor(context) {
+    return CupertinoDynamicColor.resolve(
+      const CupertinoDynamicColor.withBrightness(
+        color: Color(0x17000000),
+        darkColor: Color(0x33000000),
+      ),
+      context,
+    );
+  }
 }
 
 const terminalTheme = TerminalTheme(
