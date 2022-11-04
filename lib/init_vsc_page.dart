@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 import 'dart:developer';
 import 'dart:io';
 import 'dart:convert';
@@ -32,7 +34,7 @@ const DEB_ASSETS = [
   "proot-distro_${PROOT_DISTRO_SEMVER}_all.deb",
 ];
 
-const ALL_ASSETS = [...DEB_ASSETS, "alpine-aarch64-$ALPINE_SEMVER.tar.xz"];
+const ALL_ASSETS = [...DEB_ASSETS, ALPINE_TARBALL];
 
 class InitVscPage extends StatefulWidget {
   const InitVscPage({Key? key}) : super(key: key);
@@ -48,12 +50,14 @@ class _InitVscPageState extends State<InitVscPage> {
   late ConfigModel _cm;
   late ThemeModel _tm;
   late PlatformFile _rootfsFile;
+  late PlatformFile _codeServerFile;
   late List<Map<String, String>> _supportRootfsList;
   late List<String> _mirrorList;
   late String _validMirrorName;
   late String _rootfsPath;
   late bool _isCN;
   late bool _installMutex;
+  late bool _isInstalled;
 
   Map<String, String> _rootfsSelection = {
     "label": "Alpine Linux(built-in)",
@@ -80,10 +84,10 @@ class _InitVscPageState extends State<InitVscPage> {
     super.didChangeDependencies();
     _tm = Provider.of<ThemeModel>(context);
     _cm = Provider.of<ConfigModel>(context);
+    _isInstalled = _cm.termuxUsrDir.existsSync();
 
-    var isInstalled = _cm.termuxUsrDir.existsSync();
-    _pseudoWrite("Linux runtime is ${isInstalled ? "" : "not"}installed ");
-    if (isInstalled) {
+    _pseudoWrite("Linux runtime is ${_isInstalled ? "" : "not"}installed ");
+    if (_isInstalled) {
       _pseudoWrite("If you wanna reset runtime, tap delete rootfs button...");
     } else {
       _pseudoWrite("Setting required options and tapping install button to init environment...");
@@ -115,7 +119,7 @@ class _InitVscPageState extends State<InitVscPage> {
     };
   }
 
-  Future<void> deleteRootfs() async {
+  Future<void> _deleteRootfs() async {
     if (!_cm.termuxUsrDir.existsSync()) {
       return;
     }
@@ -124,6 +128,11 @@ class _InitVscPageState extends State<InitVscPage> {
     await _cm.termuxUsrDir.delete(recursive: true);
     await _cm.termuxHomeDir.delete(recursive: true);
     _pseudoWrite("remove successfully...");
+    if (mounted) {
+      setState(() {
+        _isInstalled = false;
+      });
+    }
   }
 
   void _setMirror() {
@@ -293,9 +302,24 @@ class _InitVscPageState extends State<InitVscPage> {
     }
   }
 
-  Future<void> _clean() async {}
+  Future<void> _clean() async {
+    await for (var ele in Stream.fromIterable(ALL_ASSETS)) {
+      var b = File("${_cm.termuxHomeDir.path}/$ele");
+      await b.delete();
+    }
+  }
 
-  Future<void> _installRootfs() async {}
+  Future<void> _installRootfs() async {
+    final alpineScript = File("${_cm.termuxUsrDir}/etc/proot-distro/alpine.sh");
+    if (await alpineScript.exists()) {
+      await alpineScript.writeAsString(FAKE_ALPINE_SCRIPT);
+    }
+    //  ALPINE_TARBALL
+//     _pty.write("""
+// mv ./$ALPINE_TARBALL
+
+// """);
+  }
 
   Future<void> _install() async {
     if (_rootfsSelection["value"] != "alpine") {
@@ -317,7 +341,10 @@ class _InitVscPageState extends State<InitVscPage> {
       throw err;
     });
 
-    _installMutex = false;
+    setState(() {
+      _installMutex = false;
+      _isInstalled = true;
+    });
   }
 
   Future<void> _chooseImg() async {
@@ -337,8 +364,27 @@ class _InitVscPageState extends State<InitVscPage> {
     }
   }
 
+  Future<void> _pickCodeServer() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['gz', 'xz'],
+    );
+
+    if (result != null) {
+      if (!result.files.single.name.contains(RegExp("arm64|aarch64"))) {
+        Fluttertoast.showToast(msg: "Tarball name needs to include arm64 or aarch64");
+        return;
+      }
+
+      setState(() {
+        _codeServerFile = result.files.single;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    log("$_isInstalled");
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(left: 30, right: 30),
@@ -346,7 +392,7 @@ class _InitVscPageState extends State<InitVscPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Expanded(
-              flex: 1,
+              flex: 2,
               child: Padding(
                 padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
                 child: TerminalView(
@@ -359,6 +405,7 @@ class _InitVscPageState extends State<InitVscPage> {
               ),
             ),
             Expanded(
+              flex: 3,
               child: SingleChildScrollView(
                 child: Center(
                   child: Column(
@@ -374,21 +421,27 @@ class _InitVscPageState extends State<InitVscPage> {
                               SizedBox(
                                 height: 30,
                                 child: CupertinoButton(
-                                  padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
-                                  onPressed: deleteRootfs,
+                                  padding: EdgeInsets.only(left: 30, right: _isInstalled ? 0 : 30, top: 5, bottom: 5),
+                                  onPressed: _deleteRootfs,
                                   child: Text('Delete rootfs', style: TextStyle(fontSize: 15, color: Colors.red[800])),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              SizedBox(
-                                height: 30,
-                                child: CupertinoButton.filled(
-                                  borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                  padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
-                                  onPressed: _install,
-                                  child: const Text('Install', style: TextStyle(fontSize: 15)),
-                                ),
-                              ),
+                              _isInstalled
+                                  ? Container()
+                                  : Row(
+                                      children: [
+                                        const SizedBox(width: 10),
+                                        SizedBox(
+                                          height: 30,
+                                          child: CupertinoButton.filled(
+                                            borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                            padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
+                                            onPressed: _install,
+                                            child: const Text('Install', style: TextStyle(fontSize: 15)),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                             ],
                           ),
                         ],
@@ -462,7 +515,7 @@ class _InitVscPageState extends State<InitVscPage> {
                         ),
                         trailing: CupertinoButton(
                           onPressed: _chooseImg,
-                          child: _selectRootfs("Select rootfs"),
+                          child: _selectRootfs("Pick rootfs"),
                         ),
                       ),
                       ListItem(
@@ -479,11 +532,25 @@ class _InitVscPageState extends State<InitVscPage> {
                           child: const Text('Pick file'),
                         ),
                       ),
+                      ListItem(
+                        require: true,
+                        dotted: true,
+                        leading: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Text("Code Server"),
+                          ],
+                        ),
+                        trailing: CupertinoButton(
+                          onPressed: _pickCodeServer,
+                          child: const Text('Pick file'),
+                        ),
+                      ),
                       _isCN
                           ? ListItem(
                               dotted: true,
                               leading: Text(_validMirrorName),
-                              sub: const Text("推荐更换镜像默认清华源", style: TextStyle(color: Colors.grey)),
+                              sub: const Text("推荐更换镜像(默认清华源)", style: TextStyle(color: Colors.grey)),
                               trailing: CupertinoButton(
                                 onPressed: _setMirror,
                                 child: _selectMirror("Select rootfs mirror"),

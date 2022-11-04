@@ -20,6 +20,14 @@ const NCURSES_SEMVER = "6.3-4";
 const NCURSES_UTILS_SEMVER = "6.3-4";
 const TALLOC_SEMVER = "2.3.3";
 
+const ALPINE_TARBALL = "alpine-aarch64-$ALPINE_SEMVER.tar.xz";
+const FAKE_ALPINE_SCRIPT = """
+DISTRO_NAME="Alpine Linux (edge)"
+
+TARBALL_URL['aarch64']="$ALPINE_TARBALL"
+TARBALL_SHA256['aarch64']="cb5dc88e0328765b0decae0da390c2eeeb9414ae82f79784cf37d7c521646a59"
+""";
+
 const ROOTFS_DOWNLOAD_CN = [
   {
     "label": "Alpine Linux(built-in)",
