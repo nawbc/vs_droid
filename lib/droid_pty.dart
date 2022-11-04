@@ -1,37 +1,35 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_pty/flutter_pty.dart';
-import 'package:provider/provider.dart';
-import 'config_model.dart';
+import 'package:path/path.dart' as p;
 
 class DroidPty {
   late Pty _pty;
-  late ConfigModel _cm;
 
   Stream<Uint8List> get output => _pty.output;
   Future<int> get exitCode => _pty.exitCode;
   int get pid => _pty.pid;
 
-  DroidPty(final BuildContext context, {int rows = 25, int columns = 80}) {
-    _cm = Provider.of<ConfigModel>(context);
+  DroidPty(String root, {int rows = 25, int columns = 80}) {
     Map<String, String> env = Map.from(Platform.environment);
+
+    final home = p.normalize("$root/../home");
     env["TERM"] = "xterm-256color";
-    if (File("${_cm.termuxBinDir.path}/bash").existsSync()) {
-      env['LD_PRELOAD'] = "${_cm.termuxUsrDir.path}/lib/libtermux-exec.so";
-      env['LD_LIBRARY_PATH'] = "${_cm.termuxUsrDir.path}/lib";
-      env['PATH'] = "${_cm.termuxBinDir.path}:${Platform.environment["PATH"]!}";
-      env['HOME'] = _cm.termuxHomeDir.path;
-      env['SHELL'] = "${_cm.termuxBinDir.path}/bash";
-      env['TERMUX_PREFIX'] = _cm.termuxUsrDir.path;
-      env['PREFIX'] = _cm.termuxUsrDir.path;
-      env['TERMINFO'] = "${_cm.termuxUsrDir.path}/share/terminfo";
+    if (File("$root/bin/bash").existsSync()) {
+      env['LD_PRELOAD'] = "$root/lib/libtermux-exec.so";
+      env['LD_LIBRARY_PATH'] = "$root/lib";
+      env['PATH'] = "$root/bin:${Platform.environment["PATH"]!}";
+      env['HOME'] = home;
+      env['SHELL'] = "$root/bin/bash";
+      env['TERMUX_PREFIX'] = root;
+      env['PREFIX'] = root;
+      env['TERMINFO'] = "$root/share/terminfo";
 
       _pty = Pty.start(
-        "${_cm.termuxBinDir.path}/bash",
+        "$root/bin/bash",
         environment: env,
-        workingDirectory: _cm.termuxHomeDir.path,
+        workingDirectory: home,
         rows: rows,
         columns: columns,
       );

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../theme.dart';
 import '../theme_model.dart';
+import 'dialog.dart';
 
 class DroidModalPopupRoute<T> extends PopupRoute<T> {
   DroidModalPopupRoute({
@@ -96,5 +97,18 @@ Future<T?> showDroidModal<T>({
       filter: filter,
       semanticsDismissible: semanticsDismissible,
     ),
+  );
+}
+
+Future<T?> showAlertModal<T>(context, String content) {
+  return showDroidModal(
+    context: context,
+    filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
+    builder: (BuildContext context) {
+      return DroidDialog(
+        withCancel: false,
+        children: [Text(content)],
+      );
+    },
   );
 }

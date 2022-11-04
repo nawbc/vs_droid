@@ -3,6 +3,8 @@ import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:vs_droid/config_model.dart';
 import 'package:xterm/core.dart';
 import 'package:xterm/ui.dart';
 import 'droid_pty.dart';
@@ -19,6 +21,7 @@ class TerminalPage extends StatefulWidget {
 
 class _TerminalPageState extends State<TerminalPage> {
   late DroidPty _pty;
+  late ConfigModel _cm;
 
   final terminal = Terminal(
     maxLines: 999999,
@@ -34,11 +37,12 @@ class _TerminalPageState extends State<TerminalPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _cm = Provider.of<ConfigModel>(context);
     _startPty();
   }
 
   void _startPty() {
-    _pty = DroidPty(context, rows: terminal.viewWidth, columns: terminal.viewHeight);
+    _pty = DroidPty(_cm.termuxUsrDir.path, rows: terminal.viewWidth, columns: terminal.viewHeight);
 
     _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
       terminal.write(data);
