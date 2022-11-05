@@ -46,11 +46,11 @@ class InitVscPage extends StatefulWidget {
 }
 
 class _InitVscPageState extends State<InitVscPage> {
-  late DroidPty _pty;
+  DroidPty? _pty;
   late ConfigModel _cm;
   late ThemeModel _tm;
   late PlatformFile _rootfsFile;
-  late PlatformFile _codeServerFile;
+  PlatformFile? _codeServerFile;
   late List<Map<String, String>> _supportRootfsList;
   late List<String> _mirrorList;
   late String _validMirrorName;
@@ -71,11 +71,11 @@ class _InitVscPageState extends State<InitVscPage> {
   @override
   void initState() {
     super.initState();
+    _isCN = Platform.localeName.substring(0, 2) == 'zh';
     _supportRootfsList = ROOTFS_DOWNLOAD_CN;
-    _validMirrorName = "tsinghua";
+    _validMirrorName = _isCN ? "tsinghua" : "alpine";
     _mirrorList = ALPINE_MIRROR;
     _rootfsPath = "alpine";
-    _isCN = Platform.localeName.substring(0, 2) == 'zh';
     _installMutex = false;
   }
 
@@ -106,23 +106,29 @@ class _InitVscPageState extends State<InitVscPage> {
       rows: terminal.viewHeight,
     );
 
-    _pty.exitCode.then((code) {
+    _pty?.exitCode.then((code) {
       terminal.write('the process exited with exit code $code');
     });
 
-    _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
+    _pty?.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
       terminal.write(data);
     });
 
     terminal.onResize = (w, h, pw, ph) {
-      _pty.resize(h, w);
+      _pty?.resize(h, w);
     };
   }
 
-  Future<void> _deleteRootfs() async {
+  Future<void> _deleteSandbox() async {
+    if (_installMutex) {
+      Fluttertoast.showToast(msg: "Installing...");
+      return;
+    }
+
     if (!_cm.termuxUsrDir.existsSync()) {
       return;
     }
+
     _pseudoWrite("rm -rf ${_cm.termuxUsrDir.path}");
     _pseudoWrite("rm -rf ${_cm.termuxHomeDir.path}...");
     await _cm.termuxUsrDir.delete(recursive: true);
@@ -298,7 +304,7 @@ class _InitVscPageState extends State<InitVscPage> {
     _startPty();
 
     await for (var ele in Stream.fromIterable(DEB_ASSETS)) {
-      _pty.exec("dpkg -i ./$ele");
+      _pty?.exec("dpkg -i ./$ele");
     }
   }
 
@@ -309,16 +315,26 @@ class _InitVscPageState extends State<InitVscPage> {
     }
   }
 
-  Future<void> _installRootfs() async {
-    final alpineScript = File("${_cm.termuxUsrDir}/etc/proot-distro/alpine.sh");
-    if (await alpineScript.exists()) {
-      await alpineScript.writeAsString(FAKE_ALPINE_SCRIPT);
+  Future<void> _prepareRootfs() async {
+    final alpineScript = File("${_cm.termuxUsrDir.path}/etc/proot-distro/alpine.sh");
+    if (!alpineScript.existsSync()) {
+      print("=======================${_cm.termuxUsrDir.path}/etc/proot-distro/alpine.sh");
+      Fluttertoast.showToast(msg: "Install rootfs failed");
+      return;
     }
-    //  ALPINE_TARBALL
-//     _pty.write("""
-// mv ./$ALPINE_TARBALL
+    await alpineScript.writeAsString(FAKE_ALPINE_SCRIPT);
+    var changeMirrorShell = setChineseAlpineMirror(_validMirrorName);
 
-// """);
+    _pty?.write("""
+PROOT_DISTRO=\$PREFIX/var/lib/proot-distro
+mkdir -p \$PROOT_DISTRO/dlcache
+mv ./$ALPINE_TARBALL \$PROOT_DISTRO/dlcache
+proot-distro install alpine
+proot-distro login alpine
+$changeMirrorShell
+apk update
+apk add nodejs
+""");
   }
 
   Future<void> _install() async {
@@ -335,15 +351,15 @@ class _InitVscPageState extends State<InitVscPage> {
     _installMutex = true;
 
     await _prepareTermux().catchError((err) {
-      print(err);
       _installMutex = false;
       showAlertModal(context, "Prepare assets failed");
       throw err;
     });
+    await Future.delayed(const Duration(seconds: 1));
+    await _prepareRootfs();
 
     setState(() {
       _installMutex = false;
-      _isInstalled = true;
     });
   }
 
@@ -422,8 +438,8 @@ class _InitVscPageState extends State<InitVscPage> {
                                 height: 30,
                                 child: CupertinoButton(
                                   padding: EdgeInsets.only(left: 30, right: _isInstalled ? 0 : 30, top: 5, bottom: 5),
-                                  onPressed: _deleteRootfs,
-                                  child: Text('Delete rootfs', style: TextStyle(fontSize: 15, color: Colors.red[800])),
+                                  onPressed: _deleteSandbox,
+                                  child: Text('Delete sandbox', style: TextStyle(fontSize: 15, color: Colors.red[800])),
                                 ),
                               ),
                               _isInstalled
@@ -457,6 +473,7 @@ class _InitVscPageState extends State<InitVscPage> {
                             GestureDetector(
                               onTap: () {
                                 setState(() {
+                                  _validMirrorName = "tsinghua";
                                   _isCN = true;
                                 });
                               },
@@ -472,6 +489,7 @@ class _InitVscPageState extends State<InitVscPage> {
                             GestureDetector(
                               onTap: () {
                                 setState(() {
+                                  _validMirrorName = "alpine";
                                   _isCN = false;
                                 });
                               },
@@ -489,35 +507,29 @@ class _InitVscPageState extends State<InitVscPage> {
                       ),
                       const SizedBox(height: 20),
                       ListItem(
-                        require: true,
-                        dotted: true,
-                        leading: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(_rootfsSelection["label"]!),
-                            const SizedBox(width: 10),
-                            _rootfsSelection["value"] != "alpine"
-                                ? SizedBox(
-                                    height: 20,
-                                    child: CupertinoButton.filled(
-                                      borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                      padding: const EdgeInsets.only(left: 10, right: 10),
-                                      onPressed: () async {
-                                        await launchUrl(Uri.parse(_rootfsSelection["url"]!),
-                                            mode: LaunchMode.externalApplication);
-                                      },
-                                      child: const Text('download'),
-                                    ),
-                                  )
-                                : Container(),
-                            const SizedBox(width: 10),
-                          ],
-                        ),
-                        trailing: CupertinoButton(
-                          onPressed: _chooseImg,
-                          child: _selectRootfs("Pick rootfs"),
-                        ),
-                      ),
+                          require: true,
+                          dotted: true,
+                          leading: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(_rootfsSelection["label"]!),
+                            ],
+                          ),
+                          trailing: Wrap(
+                            children: [
+                              CupertinoButton(
+                                onPressed: () async {
+                                  await launchUrl(Uri.parse(_rootfsSelection["url"]!),
+                                      mode: LaunchMode.externalApplication);
+                                },
+                                child: const Text('Download'),
+                              ),
+                              CupertinoButton(
+                                onPressed: _chooseImg,
+                                child: _selectRootfs("Pick rootfs"),
+                              ),
+                            ],
+                          )),
                       ListItem(
                         require: true,
                         dotted: true,
@@ -533,24 +545,37 @@ class _InitVscPageState extends State<InitVscPage> {
                         ),
                       ),
                       ListItem(
-                        require: true,
-                        dotted: true,
-                        leading: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text("Code Server"),
-                          ],
-                        ),
-                        trailing: CupertinoButton(
-                          onPressed: _pickCodeServer,
-                          child: const Text('Pick file'),
-                        ),
-                      ),
+                          require: true,
+                          dotted: true,
+                          leading: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Text("Code Server"),
+                            ],
+                          ),
+                          sub: _codeServerFile?.path == null
+                              ? null
+                              : Text(_codeServerFile!.path ?? "",
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                          trailing: Wrap(
+                            children: [
+                              CupertinoButton(
+                                onPressed: () async {
+                                  await launchUrl(Uri.parse(CODE_SERVER_RELEASE), mode: LaunchMode.externalApplication);
+                                },
+                                child: const Text('Download'),
+                              ),
+                              CupertinoButton(
+                                onPressed: _pickCodeServer,
+                                child: const Text('Pick file'),
+                              ),
+                            ],
+                          )),
                       _isCN
                           ? ListItem(
                               dotted: true,
                               leading: Text(_validMirrorName),
-                              sub: const Text("推荐更换镜像(默认清华源)", style: TextStyle(color: Colors.grey)),
+                              sub: const Text("推荐更换镜像(默认清华源)", style: TextStyle(fontSize: 12, color: Colors.grey)),
                               trailing: CupertinoButton(
                                 onPressed: _setMirror,
                                 child: _selectMirror("Select rootfs mirror"),
