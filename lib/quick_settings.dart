@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -9,16 +7,16 @@ import 'package:vs_droid/config_model.dart';
 import 'package:vs_droid/terminal_page.dart';
 import 'components/switch/switch.dart';
 
-class LeftQuickBar extends StatefulWidget {
-  const LeftQuickBar({Key? key}) : super(key: key);
+class QuickSettings extends StatefulWidget {
+  const QuickSettings({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return LeftQuickBarState();
+    return QuickSettingsState();
   }
 }
 
-class LeftQuickBarState extends State<LeftQuickBar> {
+class QuickSettingsState extends State<QuickSettings> {
   late ConfigModel _cm;
 
   final TextEditingController _c1 = TextEditingController();
@@ -139,7 +137,6 @@ class LeftQuickBarState extends State<LeftQuickBar> {
             fontSize: 20,
           ),
         ),
-        // backgroundColor: themeData.navBackgroundColor,
         border: null,
       ),
       child: Material(

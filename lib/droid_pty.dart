@@ -2,8 +2,20 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_pty/flutter_pty.dart';
+// ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 
+///
+///Init the termux environment
+///
+/// Example:
+/// ```dart
+/// _pty = DroidPty(
+///     "bash",
+///      columns: terminal.viewWidth,
+///      rows: terminal.viewHeight,
+/// );
+/// ```
 class DroidPty {
   late Pty _pty;
 
@@ -13,8 +25,8 @@ class DroidPty {
 
   DroidPty(String root, {int rows = 25, int columns = 80}) {
     Map<String, String> env = Map.from(Platform.environment);
-
     final home = p.normalize("$root/../home");
+
     env["TERM"] = "xterm-256color";
     if (File("$root/bin/bash").existsSync()) {
       env['LD_PRELOAD'] = "$root/lib/libtermux-exec.so";
@@ -43,7 +55,9 @@ class DroidPty {
     }
   }
 
+  /// Write with newline.
   void exec(String shell) => _pty.write(const Utf8Encoder().convert("$shell\n"));
+
   void write(String shell) => _pty.write(const Utf8Encoder().convert(shell));
 
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) => _pty.kill(signal);

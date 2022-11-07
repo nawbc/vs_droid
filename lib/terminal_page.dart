@@ -60,11 +60,6 @@ class _TerminalPageState extends State<TerminalPage> {
     };
   }
 
-  // _pseudoWrite(String data) {
-  //   terminal.write("\r\n");
-  //   terminal.write(r"$: " + data);
-  // }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(

@@ -1,10 +1,10 @@
 import 'dart:io';
 
+import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:vs_droid/app.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -19,9 +19,7 @@ void main() async {
     SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
   }
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // runApp(const VSDroid());
   // await Sentry.init(

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,7 +19,7 @@ import 'error.dart';
 import 'vsc_page.dart';
 import 'init_vsc_page.dart';
 import 'inner_drawer.dart';
-import 'left_quick_bar.dart';
+import 'quick_settings.dart';
 import 'theme.dart';
 import 'theme_model.dart';
 import 'utils.dart';
@@ -109,6 +110,7 @@ class _InnerVSDroid extends State<InnerVSDroid> {
           ],
           navigatorObservers: [
             SentryNavigatorObserver(),
+            FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)
           ],
           title: 'VS Droid',
           builder: (context, child) {
@@ -216,7 +218,7 @@ class _Home extends State<Home> {
               leftAnimationType: InnerDrawerAnimation.quadratic,
               rightAnimationType: InnerDrawerAnimation.quadratic,
               backgroundDecoration: const BoxDecoration(color: Colors.white),
-              leftChild: const LeftQuickBar(),
+              leftChild: const QuickSettings(),
               scaffold: CupertinoPageScaffold(
                 child: Stack(
                   alignment: Alignment.center,
