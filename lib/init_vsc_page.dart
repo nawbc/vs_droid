@@ -47,14 +47,16 @@ class _InitVscPageState extends State<InitVscPage> {
   DroidPty? _pty;
   late ConfigModel _cm;
   late ThemeModel _tm;
-  late PlatformFile _rootfsFile;
+  PlatformFile? _rootfsFile;
   PlatformFile? _codeServerFile;
   late List<Map<String, String>> _supportRootfsList;
   late List<String> _mirrorList;
   late String _validMirrorName;
   late String _rootfsPath;
   late bool _isCN;
-  late bool _installMutex;
+
+  /// Assets lock, avoid conflict.
+  late bool _mutex;
   late bool _isInstalled;
 
   Map<String, String> _rootfsSelection = {
@@ -74,7 +76,7 @@ class _InitVscPageState extends State<InitVscPage> {
     _validMirrorName = _isCN ? "tsinghua" : "alpine";
     _mirrorList = ALPINE_MIRROR;
     _rootfsPath = "alpine";
-    _installMutex = false;
+    _mutex = false;
   }
 
   @override
@@ -118,7 +120,7 @@ class _InitVscPageState extends State<InitVscPage> {
   }
 
   Future<void> _deleteSandbox() async {
-    if (_installMutex) {
+    if (_mutex) {
       Fluttertoast.showToast(msg: "Installing...");
       return;
     }
@@ -315,53 +317,65 @@ class _InitVscPageState extends State<InitVscPage> {
 
   Future<void> _prepareRootfs() async {
     final alpineScript = File("${_cm.termuxUsrDir.path}/etc/proot-distro/alpine.sh");
-    if (!alpineScript.existsSync()) {
-      print("=======================${_cm.termuxUsrDir.path}/etc/proot-distro/alpine.sh");
-      Fluttertoast.showToast(msg: "Install rootfs failed");
-      return;
-    }
+
     await alpineScript.writeAsString(FAKE_ALPINE_SCRIPT);
-    var changeMirrorShell = setChineseAlpineMirror(_validMirrorName);
+    final changeMirrorShell = setChineseAlpineMirror(_validMirrorName);
+    var rootfsTarball = _rootfsFile != null ? _rootfsFile!.path : './$ALPINE_TARBALL';
 
     _pty?.write("""
 PROOT_DISTRO=\$PREFIX/var/lib/proot-distro
 mkdir -p \$PROOT_DISTRO/dlcache
-mv ./$ALPINE_TARBALL \$PROOT_DISTRO/dlcache
+mv $rootfsTarball \$PROOT_DISTRO/dlcache
 proot-distro install alpine
 proot-distro login alpine
 $changeMirrorShell
-apk update
-apk add nodejs
+apk update && apk add nodejs
 """);
   }
 
-  Future<void> _install() async {
+  bool assetsValidate() {
     if (_rootfsSelection["value"] != "alpine") {
       Fluttertoast.showToast(msg: "Only support Alpine Linux");
-      return;
+      return false;
     }
 
-    if (_installMutex) {
+    if (_codeServerFile == null) {
+      Fluttertoast.showToast(msg: "Code Server tarball");
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> _install() async {
+    if (_mutex) {
       Fluttertoast.showToast(msg: "Installing...");
       return;
     }
 
-    _installMutex = true;
+    /// verify assets available.
+    final validate = assetsValidate();
+    if (!validate) {
+      return;
+    }
 
+    _mutex = true;
+    // Prepare termux env, install deb packages.
     await _prepareTermux().catchError((err) {
-      _installMutex = false;
+      _mutex = false;
       showAlertModal(context, "Prepare assets failed");
       throw err;
     });
     await Future.delayed(const Duration(seconds: 1));
+    // Install rootfs by proot.
     await _prepareRootfs();
 
     setState(() {
-      _installMutex = false;
+      _mutex = false;
     });
   }
 
-  Future<void> _chooseImg() async {
+  Future<void> _pickRootfs() async {
     if (_rootfsSelection["value"] == "alpine") {
       Fluttertoast.showToast(msg: "Alpine Linux is built-in");
       return;
@@ -523,7 +537,7 @@ apk add nodejs
                                 child: const Text('Download'),
                               ),
                               CupertinoButton(
-                                onPressed: _chooseImg,
+                                onPressed: _pickRootfs,
                                 child: _selectRootfs("Pick rootfs"),
                               ),
                             ],
@@ -538,7 +552,7 @@ apk add nodejs
                           ],
                         ),
                         trailing: CupertinoButton(
-                          onPressed: _chooseImg,
+                          onPressed: _pickRootfs,
                           child: const Text('Pick file'),
                         ),
                       ),

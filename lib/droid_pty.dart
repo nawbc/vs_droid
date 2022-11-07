@@ -65,4 +65,9 @@ class DroidPty {
   void resize(int rows, int cols) => _pty.resize(rows, cols);
 
   void ackRead() => _pty.ackRead();
+
+  /// Preset shells
+  void startCodeServer() => exec("""
+
+""");
 }
