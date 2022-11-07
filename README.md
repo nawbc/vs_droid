@@ -14,7 +14,10 @@
 
 ## Build
 
-- [bootstrap-aarch64]()  this repo forks termux-packages that fixs the network issue. but needs to archive manually.
+Before you begin
+- Create the termux-packages building environment, clone the [deskbtm/termux-packages](https://github.com/deskbtm/termux-packages) that forks the termux-packages, 
+<br />and  follow the guide https://github.com/termux/termux-packages/wiki/For-maintainers#examples
+- For now, all the deb packages in `assets` need to build locally.
 
 ## Credit
 
