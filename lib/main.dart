@@ -1,12 +1,11 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:vs_droid/app.dart';
-import 'package:vs_droid/constant.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,9 +19,9 @@ void main() async {
     SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
   }
 
-  if (Platform.isAndroid) {
-    // await AndroidInAppWebViewController.setWebContentsDebuggingEnabled(true);
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // runApp(const VSDroid());
   // await Sentry.init(
@@ -35,6 +34,7 @@ void main() async {
   if (await Permission.storage.request().isGranted) {
     runApp(const VSDroid());
   }
+
   //   },
   // );
 }

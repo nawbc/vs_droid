@@ -1,5 +1,3 @@
-// ignore_for_file: constant_identifier_names
-
 const List<String> ALPINE_MIRROR = ["tsinghua", "aliyun", "ustc", "apline"];
 
 const ALPINE_SEMVER = "v3.16.2";

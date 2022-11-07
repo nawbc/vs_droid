@@ -1,5 +1,3 @@
-// ignore_for_file: constant_identifier_names
-
 const IS_APP_INIT = 'is_app_init';
 const TERMINAL_QUAKE_MODE = 'terminal_quake_mode';
 const SERVER_PORT = 'server_port';

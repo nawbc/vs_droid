@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1025532827951",
+    "project_id": "vs-droid",
+    "storage_bucket": "vs-droid.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1025532827951:android:b0392c02b7c513237ea9da",
+        "android_client_info": {
+          "package_name": "com.deskbtm.vs_droid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1025532827951-d3ak4450dhtg31s8ntk1qrthj17h0b6d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDT1tCjyEf83-sFHdj91XfG-eCGV46Q8uw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1025532827951-d3ak4450dhtg31s8ntk1qrthj17h0b6d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
