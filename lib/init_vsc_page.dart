@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
@@ -32,7 +33,7 @@ const DEB_ASSETS = [
   "proot-distro_${PROOT_DISTRO_SEMVER}_all.deb",
 ];
 
-const ALL_ASSETS = [...DEB_ASSETS, ALPINE_TARBALL];
+const ALL_ASSETS = [...DEB_ASSETS, UBUNTU_TARBALL];
 
 class InitVscPage extends StatefulWidget {
   const InitVscPage({Key? key}) : super(key: key);
@@ -48,7 +49,7 @@ class _InitVscPageState extends State<InitVscPage> {
   late ConfigModel _cm;
   late ThemeModel _tm;
   PlatformFile? _rootfsFile;
-  PlatformFile? _codeServerFile;
+  String? _codeServerPath;
   late List<Map<String, String>> _supportRootfsList;
   late List<String> _mirrorList;
   late String _validMirrorName;
@@ -84,7 +85,7 @@ class _InitVscPageState extends State<InitVscPage> {
     super.didChangeDependencies();
     _tm = Provider.of<ThemeModel>(context);
     _cm = Provider.of<ConfigModel>(context);
-    _isInstalled = _cm.termuxUsrDir.existsSync();
+    _isInstalled = _cm.termuxUsr.existsSync();
 
     _pseudoWrite("Linux runtime is ${_isInstalled ? "" : "not"}installed ");
     if (_isInstalled) {
@@ -101,7 +102,7 @@ class _InitVscPageState extends State<InitVscPage> {
 
   void _startPty() {
     _pty = DroidPty(
-      _cm.termuxUsrDir.path,
+      _cm.termuxUsr.path,
       columns: terminal.viewWidth,
       rows: terminal.viewHeight,
     );
@@ -125,14 +126,14 @@ class _InitVscPageState extends State<InitVscPage> {
       return;
     }
 
-    if (!_cm.termuxUsrDir.existsSync()) {
+    if (!_cm.termuxUsr.existsSync()) {
       return;
     }
 
-    _pseudoWrite("rm -rf ${_cm.termuxUsrDir.path}");
-    _pseudoWrite("rm -rf ${_cm.termuxHomeDir.path}...");
-    await _cm.termuxUsrDir.delete(recursive: true);
-    await _cm.termuxHomeDir.delete(recursive: true);
+    _pseudoWrite("rm -rf ${_cm.termuxUsr.path}");
+    _pseudoWrite("rm -rf ${_cm.termuxHome.path}...");
+    await _cm.termuxUsr.delete(recursive: true);
+    await _cm.termuxHome.delete(recursive: true);
     _pseudoWrite("remove successfully...");
     if (mounted) {
       setState(() {
@@ -209,13 +210,13 @@ class _InitVscPageState extends State<InitVscPage> {
   }
 
   Future<void> _createRootfsSymlink() async {
-    File symLinks = File("${_cm.termuxUsrDir.path}/SYMLINKS.txt");
+    File symLinks = File("${_cm.termuxUsr.path}/SYMLINKS.txt");
     Map map = {};
 
     await symLinks.openRead().transform(utf8.decoder).transform(const LineSplitter()).forEach(
       (line) async {
         final pair = line.split("←");
-        final linkPath = p.normalize(p.join(_cm.termuxUsrDir.path, pair.elementAt(1)));
+        final linkPath = p.normalize(p.join(_cm.termuxUsr.path, pair.elementAt(1)));
 
         var linkDir = Directory(p.dirname(linkPath));
 
@@ -254,7 +255,7 @@ class _InitVscPageState extends State<InitVscPage> {
   }
 
   Future<void> _extractBootstrap() async {
-    await _cm.termuxHomeDir.create(recursive: true);
+    await _cm.termuxHome.create(recursive: true);
     _pseudoWrite("Create home directory successfully");
 
     _pseudoWrite("Start extract assets from bundle...");
@@ -267,11 +268,11 @@ class _InitVscPageState extends State<InitVscPage> {
       final filename = file.name;
       if (file.isFile) {
         final data = file.content as List<int>;
-        File(p.join(_cm.termuxUsrDir.path, filename))
+        File(p.join(_cm.termuxUsr.path, filename))
           ..createSync(recursive: true)
           ..writeAsBytesSync(data);
       } else {
-        Directory(p.join(_cm.termuxUsrDir.path, filename)).create(recursive: true);
+        Directory(p.join(_cm.termuxUsr.path, filename)).create(recursive: true);
       }
     }
 
@@ -279,7 +280,7 @@ class _InitVscPageState extends State<InitVscPage> {
   }
 
   Future<void> _prepareTermux() async {
-    if (await _cm.termuxUsrDir.exists()) {
+    if (await _cm.termuxUsr.exists()) {
       return;
     }
     await _extractBootstrap().catchError((err) {
@@ -295,11 +296,11 @@ class _InitVscPageState extends State<InitVscPage> {
 
     await for (var ele in Stream.fromIterable(ALL_ASSETS)) {
       var a = await rootBundle.load("assets/$ele");
-      var b = File("${_cm.termuxHomeDir.path}/$ele");
+      var b = File("${_cm.termuxHome.path}/$ele");
       await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
     }
-    await chmod(_cm.termuxHomeDir.path, "755");
-    await chmod(_cm.termuxUsrDir.path, "755");
+    await chmod(_cm.termuxHome.path, "755");
+    await chmod(_cm.termuxUsr.path, "755");
 
     _startPty();
 
@@ -310,27 +311,39 @@ class _InitVscPageState extends State<InitVscPage> {
 
   Future<void> _clean() async {
     await for (var ele in Stream.fromIterable(ALL_ASSETS)) {
-      var b = File("${_cm.termuxHomeDir.path}/$ele");
+      var b = File("${_cm.termuxHome.path}/$ele");
       await b.delete();
     }
   }
 
-  Future<void> _prepareRootfs() async {
-    final alpineScript = File("${_cm.termuxUsrDir.path}/etc/proot-distro/alpine.sh");
+  Future<void> _prepareCodeServer() async {
+    final alpineScript = File("${_cm.termuxUsr.path}/etc/proot-distro/alpine.sh");
+    final ubuntuScript = File("${_cm.termuxUsr.path}/etc/proot-distro/ubuntu.sh");
 
-    await alpineScript.writeAsString(FAKE_ALPINE_SCRIPT);
+    await chmod(_codeServerPath!, "777");
+
+    await ubuntuScript.writeAsString(FAKE_UBUNTU_SCRIPT);
     final changeMirrorShell = setChineseAlpineMirror(_validMirrorName);
-    var rootfsTarball = _rootfsFile != null ? _rootfsFile!.path : './$ALPINE_TARBALL';
+    var rootfsTarball = _rootfsFile != null ? _rootfsFile!.path : './$UBUNTU_TARBALL';
 
     _pty?.write("""
 PROOT_DISTRO=\$PREFIX/var/lib/proot-distro
 mkdir -p \$PROOT_DISTRO/dlcache
 mv $rootfsTarball \$PROOT_DISTRO/dlcache
-proot-distro install alpine
-proot-distro login alpine
-$changeMirrorShell
-apk update && apk add nodejs
+proot-distro install ubuntu
+proot-distro login ubuntu
 """);
+//     _pty?.write("""
+// PROOT_DISTRO=\$PREFIX/var/lib/proot-distro
+// mkdir -p \$PROOT_DISTRO/dlcache
+// mv $rootfsTarball \$PROOT_DISTRO/dlcache
+// proot-distro install alpine
+// proot-distro login alpine
+// $changeMirrorShell
+// apk update && apk add nodejs
+// mkdir /home/code-server
+// tar zxvf $_codeServerPath -C /home/code-server --strip-components=1
+// """);
   }
 
   bool assetsValidate() {
@@ -339,8 +352,8 @@ apk update && apk add nodejs
       return false;
     }
 
-    if (_codeServerFile == null) {
-      Fluttertoast.showToast(msg: "Code Server tarball");
+    if (_codeServerPath == null) {
+      Fluttertoast.showToast(msg: "Pleace pick code server tarball");
       return false;
     }
 
@@ -354,10 +367,7 @@ apk update && apk add nodejs
     }
 
     /// verify assets available.
-    final validate = assetsValidate();
-    if (!validate) {
-      return;
-    }
+    if (!assetsValidate()) return;
 
     _mutex = true;
     // Prepare termux env, install deb packages.
@@ -368,7 +378,7 @@ apk update && apk add nodejs
     });
     await Future.delayed(const Duration(seconds: 1));
     // Install rootfs by proot.
-    await _prepareRootfs();
+    await _prepareCodeServer();
 
     setState(() {
       _mutex = false;
@@ -395,7 +405,7 @@ apk update && apk add nodejs
   Future<void> _pickCodeServer() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['gz', 'xz'],
+      allowedExtensions: ['gz', 'xz', 'deb'],
     );
 
     if (result != null) {
@@ -405,7 +415,7 @@ apk update && apk add nodejs
       }
 
       setState(() {
-        _codeServerFile = result.files.single;
+        _codeServerPath = result.files.single.path?.replaceAll(RegExp(r"\/data\/user\/\d+"), "/data/data");
       });
     }
   }
@@ -519,29 +529,19 @@ apk update && apk add nodejs
                       ),
                       const SizedBox(height: 20),
                       ListItem(
-                          require: true,
-                          dotted: true,
-                          leading: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(_rootfsSelection["label"]!),
-                            ],
-                          ),
-                          trailing: Wrap(
-                            children: [
-                              CupertinoButton(
-                                onPressed: () async {
-                                  await launchUrl(Uri.parse(_rootfsSelection["url"]!),
-                                      mode: LaunchMode.externalApplication);
-                                },
-                                child: const Text('Download'),
-                              ),
-                              CupertinoButton(
-                                onPressed: _pickRootfs,
-                                child: _selectRootfs("Pick rootfs"),
-                              ),
-                            ],
-                          )),
+                        require: true,
+                        dotted: true,
+                        leading: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(_rootfsSelection["label"]!),
+                          ],
+                        ),
+                        trailing: CupertinoButton(
+                          onPressed: _pickRootfs,
+                          child: _selectRootfs("Select rootfs"),
+                        ),
+                      ),
                       ListItem(
                         require: true,
                         dotted: true,
@@ -551,9 +551,20 @@ apk update && apk add nodejs
                             Text(_rootfsPath, style: const TextStyle(color: Colors.grey)),
                           ],
                         ),
-                        trailing: CupertinoButton(
-                          onPressed: _pickRootfs,
-                          child: const Text('Pick file'),
+                        trailing: Wrap(
+                          children: [
+                            CupertinoButton(
+                              onPressed: () async {
+                                await launchUrl(Uri.parse(_rootfsSelection["url"]!),
+                                    mode: LaunchMode.externalApplication);
+                              },
+                              child: const Text('Download'),
+                            ),
+                            CupertinoButton(
+                              onPressed: _pickRootfs,
+                              child: const Text('Pick file'),
+                            ),
+                          ],
                         ),
                       ),
                       ListItem(
@@ -565,10 +576,9 @@ apk update && apk add nodejs
                               Text("Code Server"),
                             ],
                           ),
-                          sub: _codeServerFile?.path == null
+                          sub: _codeServerPath == null
                               ? null
-                              : Text(_codeServerFile!.path ?? "",
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                              : Text(_codeServerPath ?? "", style: const TextStyle(fontSize: 12, color: Colors.grey)),
                           trailing: Wrap(
                             children: [
                               CupertinoButton(

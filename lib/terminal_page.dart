@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -41,7 +40,7 @@ class _TerminalPageState extends State<TerminalPage> {
   }
 
   void _startPty() {
-    _pty = DroidPty(_cm.termuxUsrDir.path, rows: terminal.viewWidth, columns: terminal.viewHeight);
+    _pty = DroidPty(_cm.termuxUsr.path, rows: terminal.viewWidth, columns: terminal.viewHeight);
 
     _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
       terminal.write(data);
@@ -62,30 +61,33 @@ class _TerminalPageState extends State<TerminalPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: TerminalView(
-        terminal,
-        padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
-        controller: terminalController,
-        autofocus: true,
-        theme: terminalDarkTheme,
-        alwaysShowCursor: true,
-        backgroundOpacity: 1,
-        onSecondaryTapDown: (details, offset) async {
-          final selection = terminalController.selection;
-          if (selection != null) {
-            final text = terminal.buffer.getText(selection);
-            terminalController.clearSelection();
-            await Clipboard.setData(ClipboardData(text: text));
-          } else {
-            final data = await Clipboard.getData('text/plain');
-            final text = data?.text;
-            if (text != null) {
-              terminal.paste(text);
+    return Container(
+      color: Colors.black,
+      child: SafeArea(
+        child: TerminalView(
+          terminal,
+          padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
+          controller: terminalController,
+          autofocus: true,
+          theme: terminalDarkTheme,
+          alwaysShowCursor: true,
+          backgroundOpacity: 1,
+          onSecondaryTapDown: (details, offset) async {
+            final selection = terminalController.selection;
+            if (selection != null) {
+              final text = terminal.buffer.getText(selection);
+              terminalController.clearSelection();
+              await Clipboard.setData(ClipboardData(text: text));
+            } else {
+              final data = await Clipboard.getData('text/plain');
+              final text = data?.text;
+              if (text != null) {
+                terminal.paste(text);
+              }
             }
-          }
-        },
-        // backgroundOpacity: 0,
+          },
+          // backgroundOpacity: 0,
+        ),
       ),
     );
   }

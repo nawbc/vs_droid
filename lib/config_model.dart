@@ -9,14 +9,17 @@ class ConfigModel extends ChangeNotifier {
   late Directory _filesDir;
   Directory get filesDir => _filesDir;
 
-  late Directory _termuxUsrDir;
-  Directory get termuxUsrDir => _termuxUsrDir;
+  late Directory _termuxUsr;
+  Directory get termuxUsr => _termuxUsr;
 
-  late Directory _termuxBinDir;
-  Directory get termuxBinDir => _termuxBinDir;
+  late Directory _termuxBin;
+  Directory get termuxBin => _termuxBin;
 
-  late Directory _termuxHomeDir;
-  Directory get termuxHomeDir => _termuxHomeDir;
+  late Directory _termuxHome;
+  Directory get termuxHome => _termuxHome;
+
+  late Directory _prootDistroDir;
+  Directory get prootDistroDir => _prootDistroDir;
 
   late bool _isAppInit;
   bool get isAppInit => _isAppInit;
@@ -59,9 +62,10 @@ class ConfigModel extends ChangeNotifier {
       _isAppInit = await Store.getBool(IS_APP_INIT) ?? false;
       _serverPort = await Store.getString(SERVER_PORT) ?? "20771";
       _filesDir = Directory("/data/data/com.deskbtm.vs_droid/files");
-      _termuxUsrDir = Directory("${_filesDir.path}/usr");
-      _termuxBinDir = Directory("${_filesDir.path}/usr/bin");
-      _termuxHomeDir = Directory("${_filesDir.path}/home");
+      _termuxUsr = Directory("${_filesDir.path}/usr");
+      _termuxBin = Directory("$_termuxUsr/bin");
+      _termuxHome = Directory("${_filesDir.path}/home");
+      _prootDistroDir = Directory("$_termuxUsr/var/lib/proot-distro/installed-rootfs");
     } catch (e, s) {
       await Sentry.captureException(
         e,
