@@ -10,6 +10,13 @@ const String THEME_KEY = 'theme';
 const String LIGHT_THEME = 'light';
 const String DARK_THEME = 'dark';
 
+const BOOTSTRAP_SEMVER = "2022.10.23-r1+apt-android-7";
+const PROOT_DISTRO_SEMVER = "3.2.1";
+const PROOT_SEMVER = "5.1.107-54";
+const NCURSES_SEMVER = "6.3-4";
+const NCURSES_UTILS_SEMVER = "6.3-4";
+const TALLOC_SEMVER = "2.3.3";
+
 const CODE_SERVER_RELEASE = "https://github.com/coder/code-server/releases";
 
 const ROOTFS_DOWNLOAD_CN = [

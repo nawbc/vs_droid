@@ -7,19 +7,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vs_droid/components/droid_modal.dart';
 import 'package:vs_droid/constant.dart';
-import 'package:vs_droid/distros/alpine.dart';
+import 'package:vs_droid/distros/ubuntu.dart';
 import 'package:xterm/core.dart';
 import 'package:xterm/ui.dart';
 import 'components/list.dart';
 import 'components/menu.dart';
 import 'config_model.dart';
+import 'distros/distro.dart';
 import 'droid_pty.dart';
 import 'theme.dart';
 import 'theme_model.dart';
@@ -33,7 +33,8 @@ const DEB_ASSETS = [
   "proot-distro_${PROOT_DISTRO_SEMVER}_all.deb",
 ];
 
-const ALL_ASSETS = [...DEB_ASSETS, UBUNTU_TARBALL];
+// ignore: non_constant_identifier_names
+var ALL_ASSETS = [...DEB_ASSETS];
 
 class InitVscPage extends StatefulWidget {
   const InitVscPage({Key? key}) : super(key: key);
@@ -55,15 +56,16 @@ class _InitVscPageState extends State<InitVscPage> {
   late String _validMirrorName;
   late String _rootfsPath;
   late bool _isCN;
+  late Distro _distro;
 
   /// Assets lock, avoid conflict.
   late bool _mutex;
   late bool _isInstalled;
 
-  Map<String, String> _rootfsSelection = {
-    "label": "Alpine Linux(built-in)",
-    "value": "alpine",
-  };
+  // Map<String, String> _rootfsSelection = {
+  //   "label": "Alpine Linux(built-in)",
+  //   "value": "alpine",
+  // };
 
   final terminal = Terminal(
     maxLines: 999999,
@@ -73,11 +75,12 @@ class _InitVscPageState extends State<InitVscPage> {
   void initState() {
     super.initState();
     _isCN = Platform.localeName.substring(0, 2) == 'zh';
-    _supportRootfsList = ROOTFS_DOWNLOAD_CN;
+    // _supportRootfsList = ROOTFS_DOWNLOAD_CN;
     _validMirrorName = _isCN ? "tsinghua" : "alpine";
-    _mirrorList = ALPINE_MIRROR;
-    _rootfsPath = "alpine";
+    _distro = ubuntuDistro;
+    _rootfsPath = "ubuntu";
     _mutex = false;
+    ALL_ASSETS = [...ALL_ASSETS, _distro.tarball];
   }
 
   @override
@@ -144,18 +147,18 @@ class _InitVscPageState extends State<InitVscPage> {
 
   void _setMirror() {
     List<String> list;
-    switch (_rootfsSelection["value"]) {
-      case "alpine":
-        list = ALPINE_MIRROR;
-        break;
-      default:
-        list = ALPINE_MIRROR;
-        break;
-    }
+    // switch (_rootfsSelection["value"]) {
+    //   case "alpine":
+    //     list = _distro.chineseMirrors;
+    //     break;
+    //   default:
+    //     list = _distro.chineseMirrors;
+    //     break;
+    // }
 
-    setState(() {
-      _mirrorList = list;
-    });
+    // setState(() {
+    //   _mirrorList = list;
+    // });
   }
 
   Widget _selectRootfs(String name) {
@@ -171,7 +174,7 @@ class _InitVscPageState extends State<InitVscPage> {
               title: Text(e["label"]!, style: const TextStyle(fontSize: 14)),
               onPressed: () {
                 setState(() {
-                  _rootfsSelection = e;
+                  // _rootfsSelection = e;
                 });
               },
             ),
@@ -317,14 +320,11 @@ class _InitVscPageState extends State<InitVscPage> {
   }
 
   Future<void> _prepareCodeServer() async {
-    final alpineScript = File("${_cm.termuxUsr.path}/etc/proot-distro/alpine.sh");
-    final ubuntuScript = File("${_cm.termuxUsr.path}/etc/proot-distro/ubuntu.sh");
-
+    final fakeScript = File("${_cm.termuxUsr.path}/etc/proot-distro/${_distro.id}.sh");
     await chmod(_codeServerPath!, "777");
-
-    await ubuntuScript.writeAsString(FAKE_UBUNTU_SCRIPT);
-    final changeMirrorShell = setChineseAlpineMirror(_validMirrorName);
-    var rootfsTarball = _rootfsFile != null ? _rootfsFile!.path : './$UBUNTU_TARBALL';
+    await fakeScript.writeAsString(_distro.overwriteDistro);
+    // final changeMirrorShell = setChineseAlpineMirror(_validMirrorName);
+    var rootfsTarball = _rootfsFile != null ? _rootfsFile!.path : './${_distro.tarball}';
 
     _pty?.write("""
 PROOT_DISTRO=\$PREFIX/var/lib/proot-distro
@@ -347,11 +347,6 @@ proot-distro login ubuntu
   }
 
   bool assetsValidate() {
-    if (_rootfsSelection["value"] != "alpine") {
-      Fluttertoast.showToast(msg: "Only support Alpine Linux");
-      return false;
-    }
-
     if (_codeServerPath == null) {
       Fluttertoast.showToast(msg: "Pleace pick code server tarball");
       return false;
@@ -386,20 +381,21 @@ proot-distro login ubuntu
   }
 
   Future<void> _pickRootfs() async {
-    if (_rootfsSelection["value"] == "alpine") {
-      Fluttertoast.showToast(msg: "Alpine Linux is built-in");
-      return;
-    }
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['gz', 'xz'],
-    );
-    if (result != null) {
-      setState(() {
-        _rootfsFile = result.files.single;
-        _rootfsPath = result.files.single.name;
-      });
-    }
+    Fluttertoast.showToast(msg: "Ubuntu Linux is built-in, and currently only support Ubuntu");
+    // if (_distro.id == "ubuntu") {
+    //   Fluttertoast.showToast(msg: "Ubuntu Linux is built-in");
+    //   return;
+    // }
+    // FilePickerResult? result = await FilePicker.platform.pickFiles(
+    //   type: FileType.custom,
+    //   allowedExtensions: ['gz', 'xz'],
+    // );
+    // if (result != null) {
+    //   setState(() {
+    //     _rootfsFile = result.files.single;
+    //     _rootfsPath = result.files.single.name;
+    //   });
+    // }
   }
 
   Future<void> _pickCodeServer() async {
@@ -534,7 +530,7 @@ proot-distro login ubuntu
                         leading: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Text(_rootfsSelection["label"]!),
+                            Text(_distro.name),
                           ],
                         ),
                         trailing: CupertinoButton(
@@ -555,8 +551,9 @@ proot-distro login ubuntu
                           children: [
                             CupertinoButton(
                               onPressed: () async {
-                                await launchUrl(Uri.parse(_rootfsSelection["url"]!),
-                                    mode: LaunchMode.externalApplication);
+                                if (_distro.releaseUri != null) {
+                                  await launchUrl(Uri.parse(_distro.releaseUri!), mode: LaunchMode.externalApplication);
+                                }
                               },
                               child: const Text('Download'),
                             ),
