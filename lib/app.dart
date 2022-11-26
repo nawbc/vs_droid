@@ -1,17 +1,15 @@
 import 'dart:async';
-
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:unicons/unicons.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:responsive_framework/responsive_framework.dart';
-
 import 'config_model.dart';
 import 'constant.dart';
 import 'double_pop.dart';
@@ -91,44 +89,38 @@ class _InnerVSDroid extends State<InnerVSDroid> {
     if (!_modelInited) {
       return Container(color: themeData.scaffoldBackgroundColor);
     } else {
-      return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: const SystemUiOverlayStyle(
-          systemNavigationBarIconBrightness: Brightness.dark,
-          systemNavigationBarColor: Colors.black,
-        ),
-        child: CupertinoApp(
-          theme: CupertinoThemeData(
-            primaryColor: themeData.primaryColor,
-            textTheme: const CupertinoTextThemeData(
-              textStyle: TextStyle(fontSize: 14, color: Color(0xFF131313)),
+      return ScreenUtilInit(
+        designSize: const Size(360, 690),
+        minTextAdapt: true,
+        splitScreenMode: true,
+        builder: (context, child) {
+          return AnnotatedRegion<SystemUiOverlayStyle>(
+            value: const SystemUiOverlayStyle(
+              systemNavigationBarIconBrightness: Brightness.dark,
+              systemNavigationBarColor: Colors.black,
             ),
-          ),
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          navigatorObservers: [
-            SentryNavigatorObserver(),
-            FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)
-          ],
-          title: 'VS Droid',
-          builder: (context, child) {
-            return ResponsiveWrapper.builder(
-              child,
-              maxWidth: 1270,
-              minWidth: 480,
-              defaultScale: true,
-              breakpoints: [
-                const ResponsiveBreakpoint.resize(480, name: MOBILE),
-                const ResponsiveBreakpoint.autoScale(800, name: TABLET),
-                const ResponsiveBreakpoint.resize(1200, name: DESKTOP),
+            child: CupertinoApp(
+              theme: CupertinoThemeData(
+                primaryColor: themeData.primaryColor,
+                textTheme: const CupertinoTextThemeData(
+                  textStyle: TextStyle(fontSize: 14, color: Color(0xFF131313)),
+                ),
+              ),
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
               ],
-              background: Container(color: _tm.themeData.scaffoldBackgroundColor),
-            );
-          },
-          home: DoublePop(child: const Home()),
-        ),
+              navigatorObservers: [
+                SentryNavigatorObserver(),
+                FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)
+              ],
+              title: 'VS Droid',
+              home: child,
+            ),
+          );
+        },
+        child: DoublePop(child: const Home()),
       );
     }
   }
@@ -147,7 +139,6 @@ class _Home extends State<Home> {
   late ConfigModel _cm;
   late ThemeModel _tm;
   late StreamSubscription<ConnectivityResult> _connectSubscription;
-
   final GlobalKey<InnerDrawerState> _innerDrawerKey = GlobalKey<InnerDrawerState>();
 
   Future<void> _setInternalIp(ConnectivityResult? result, {bool notify = true}) async {

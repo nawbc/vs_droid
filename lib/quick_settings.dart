@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:unicons/unicons.dart';
@@ -127,14 +128,14 @@ class QuickSettingsState extends State<QuickSettings> {
     ];
 
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
+      navigationBar: CupertinoNavigationBar(
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         leading: Text(
           'Quick Settings',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 20,
+            fontSize: 20.sp,
           ),
         ),
         border: null,

@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 // ignore: depend_on_referenced_packages
@@ -34,7 +35,6 @@ const DEB_ASSETS = [
 ];
 
 // ignore: non_constant_identifier_names
-var ALL_ASSETS = [...DEB_ASSETS];
 
 class InitVscPage extends StatefulWidget {
   const InitVscPage({Key? key}) : super(key: key);
@@ -51,21 +51,15 @@ class _InitVscPageState extends State<InitVscPage> {
   late ThemeModel _tm;
   PlatformFile? _rootfsFile;
   String? _codeServerPath;
-  late List<Map<String, String>> _supportRootfsList;
-  late List<String> _mirrorList;
   late String _validMirrorName;
   late String _rootfsPath;
-  late bool _isCN;
+  late String _region;
   late Distro _distro;
+  late List<String> _envAssets;
 
   /// Assets lock, avoid conflict.
   late bool _mutex;
   late bool _isInstalled;
-
-  // Map<String, String> _rootfsSelection = {
-  //   "label": "Alpine Linux(built-in)",
-  //   "value": "alpine",
-  // };
 
   final terminal = Terminal(
     maxLines: 999999,
@@ -74,13 +68,12 @@ class _InitVscPageState extends State<InitVscPage> {
   @override
   void initState() {
     super.initState();
-    _isCN = Platform.localeName.substring(0, 2) == 'zh';
-    // _supportRootfsList = ROOTFS_DOWNLOAD_CN;
-    _validMirrorName = _isCN ? "tsinghua" : "alpine";
+    _region = Platform.localeName.substring(0, 2) == 'zh' ? 'zh' : 'en';
+    _validMirrorName = _region == "zh" ? "tsinghua" : "ubuntu";
     _distro = ubuntuDistro;
+    _envAssets = [...DEB_ASSETS, "${_distro.id}-${_distro.arch}-${_distro.semver}.tar.xz"];
     _rootfsPath = "ubuntu";
     _mutex = false;
-    ALL_ASSETS = [...ALL_ASSETS, _distro.tarball];
   }
 
   @override
@@ -96,11 +89,6 @@ class _InitVscPageState extends State<InitVscPage> {
     } else {
       _pseudoWrite("Setting required options and tapping install button to init environment...");
     }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   void _startPty() {
@@ -145,22 +133,6 @@ class _InitVscPageState extends State<InitVscPage> {
     }
   }
 
-  void _setMirror() {
-    List<String> list;
-    // switch (_rootfsSelection["value"]) {
-    //   case "alpine":
-    //     list = _distro.chineseMirrors;
-    //     break;
-    //   default:
-    //     list = _distro.chineseMirrors;
-    //     break;
-    // }
-
-    // setState(() {
-    //   _mirrorList = list;
-    // });
-  }
-
   Widget _selectRootfs(String name) {
     return FocusedMenuHolder(
       menuWidth: 200,
@@ -168,14 +140,15 @@ class _InitVscPageState extends State<InitVscPage> {
       offsetY: 10,
       duration: const Duration(milliseconds: 100),
       maskColor: const Color.fromARGB(30, 116, 116, 116),
-      menuItems: _supportRootfsList
+      menuItems: VALID_ROOTFS
           .map(
             (e) => FocusedMenuItem(
               title: Text(e["label"]!, style: const TextStyle(fontSize: 14)),
               onPressed: () {
-                setState(() {
-                  // _rootfsSelection = e;
-                });
+                Fluttertoast.showToast(msg: "Coming soon");
+                // setState(() {
+                //   _distro = DISTRO_MAP[e["value"]]!;
+                // });
               },
             ),
           )
@@ -196,7 +169,7 @@ class _InitVscPageState extends State<InitVscPage> {
       offsetY: 10,
       duration: const Duration(milliseconds: 100),
       maskColor: const Color.fromARGB(30, 116, 116, 116),
-      menuItems: _mirrorList
+      menuItems: _distro.chineseMirrors
           .map(
             (e) => FocusedMenuItem(
               title: Text(e, style: const TextStyle(fontSize: 14)),
@@ -297,7 +270,7 @@ class _InitVscPageState extends State<InitVscPage> {
     });
     _pseudoWrite("Linking successfully...");
 
-    await for (var ele in Stream.fromIterable(ALL_ASSETS)) {
+    await for (var ele in Stream.fromIterable(_envAssets)) {
       var a = await rootBundle.load("assets/$ele");
       var b = File("${_cm.termuxHome.path}/$ele");
       await b.writeAsBytes(a.buffer.asUint8List(a.offsetInBytes, a.lengthInBytes));
@@ -313,7 +286,7 @@ class _InitVscPageState extends State<InitVscPage> {
   }
 
   Future<void> _clean() async {
-    await for (var ele in Stream.fromIterable(ALL_ASSETS)) {
+    await for (var ele in Stream.fromIterable(_envAssets)) {
       var b = File("${_cm.termuxHome.path}/$ele");
       await b.delete();
     }
@@ -323,7 +296,7 @@ class _InitVscPageState extends State<InitVscPage> {
     final fakeScript = File("${_cm.termuxUsr.path}/etc/proot-distro/${_distro.id}.sh");
     await chmod(_codeServerPath!, "777");
     await fakeScript.writeAsString(_distro.overwriteDistro);
-    // final changeMirrorShell = setChineseAlpineMirror(_validMirrorName);
+    final replaceMirrorShell = _distro.replaceCNMirrorShell[_validMirrorName];
     var rootfsTarball = _rootfsFile != null ? _rootfsFile!.path : './${_distro.tarball}';
 
     _pty?.write("""
@@ -332,18 +305,10 @@ mkdir -p \$PROOT_DISTRO/dlcache
 mv $rootfsTarball \$PROOT_DISTRO/dlcache
 proot-distro install ubuntu
 proot-distro login ubuntu
+$replaceMirrorShell
+mkdir -p /home/code-server
+apt update && apt install $_codeServerPath -y
 """);
-//     _pty?.write("""
-// PROOT_DISTRO=\$PREFIX/var/lib/proot-distro
-// mkdir -p \$PROOT_DISTRO/dlcache
-// mv $rootfsTarball \$PROOT_DISTRO/dlcache
-// proot-distro install alpine
-// proot-distro login alpine
-// $changeMirrorShell
-// apk update && apk add nodejs
-// mkdir /home/code-server
-// tar zxvf $_codeServerPath -C /home/code-server --strip-components=1
-// """);
   }
 
   bool assetsValidate() {
@@ -448,35 +413,39 @@ proot-distro login ubuntu
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Recommended defaults', style: TextStyle(fontSize: 15)),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              SizedBox(
-                                height: 30,
-                                child: CupertinoButton(
-                                  padding: EdgeInsets.only(left: 30, right: _isInstalled ? 0 : 30, top: 5, bottom: 5),
-                                  onPressed: _deleteSandbox,
-                                  child: Text('Delete sandbox', style: TextStyle(fontSize: 15, color: Colors.red[800])),
+                          Text('Recommended defaults', style: TextStyle(fontSize: 15.sp)),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 15),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                SizedBox(
+                                  height: 30,
+                                  child: CupertinoButton(
+                                    padding: EdgeInsets.only(left: 30, right: _isInstalled ? 0 : 30, top: 5, bottom: 5),
+                                    onPressed: _deleteSandbox,
+                                    child:
+                                        Text('Delete sandbox', style: TextStyle(fontSize: 15, color: Colors.red[800])),
+                                  ),
                                 ),
-                              ),
-                              _isInstalled
-                                  ? Container()
-                                  : Row(
-                                      children: [
-                                        const SizedBox(width: 10),
-                                        SizedBox(
-                                          height: 30,
-                                          child: CupertinoButton.filled(
-                                            borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                            padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
-                                            onPressed: _install,
-                                            child: const Text('Install', style: TextStyle(fontSize: 15)),
+                                _isInstalled
+                                    ? Container()
+                                    : Row(
+                                        children: [
+                                          const SizedBox(width: 10),
+                                          SizedBox(
+                                            height: 30,
+                                            child: CupertinoButton.filled(
+                                              borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                              padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
+                                              onPressed: _install,
+                                              child: Text('Install', style: TextStyle(fontSize: 15.sp)),
+                                            ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                            ],
+                                        ],
+                                      ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -491,33 +460,32 @@ proot-distro login ubuntu
                             GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  _validMirrorName = "tsinghua";
-                                  _isCN = true;
+                                  _region = "zh";
                                 });
                               },
                               child: Container(
                                 alignment: Alignment.center,
                                 height: 20,
                                 padding: const EdgeInsets.only(left: 10, right: 10),
-                                color: _isCN ? _tm.themeData.primaryColor : Colors.transparent,
-                                child: Text('中文', style: TextStyle(fontSize: 12, color: _isCN ? Colors.white : null)),
+                                color: _region == "zh" ? _tm.themeData.primaryColor : Colors.transparent,
+                                child: Text('中文',
+                                    style: TextStyle(fontSize: 12, color: _region == "zh" ? Colors.white : null)),
                               ),
                             ),
                             const SizedBox(width: 25),
                             GestureDetector(
                               onTap: () {
                                 setState(() {
-                                  _validMirrorName = "alpine";
-                                  _isCN = false;
+                                  _region = "en";
                                 });
                               },
                               child: Container(
                                 alignment: Alignment.center,
                                 height: 20,
                                 padding: const EdgeInsets.only(left: 10, right: 10),
-                                color: _isCN ? Colors.transparent : _tm.themeData.primaryColor,
-                                child:
-                                    Text('English', style: TextStyle(fontSize: 12, color: _isCN ? null : Colors.white)),
+                                color: _region == "zh" ? Colors.transparent : _tm.themeData.primaryColor,
+                                child: Text('English',
+                                    style: TextStyle(fontSize: 12, color: _region == "zh" ? null : Colors.white)),
                               ),
                             ),
                           ],
@@ -551,9 +519,9 @@ proot-distro login ubuntu
                           children: [
                             CupertinoButton(
                               onPressed: () async {
-                                if (_distro.releaseUri != null) {
-                                  await launchUrl(Uri.parse(_distro.releaseUri!), mode: LaunchMode.externalApplication);
-                                }
+                                await launchUrl(
+                                    Uri.parse(_region == "zh" ? _distro.releaseUriCN! : _distro.releaseUri!),
+                                    mode: LaunchMode.externalApplication);
                               },
                               child: const Text('Download'),
                             ),
@@ -590,13 +558,13 @@ proot-distro login ubuntu
                               ),
                             ],
                           )),
-                      _isCN
+                      _region == "zh"
                           ? ListItem(
                               dotted: true,
                               leading: Text(_validMirrorName),
                               sub: const Text("推荐更换镜像(默认清华源)", style: TextStyle(fontSize: 12, color: Colors.grey)),
                               trailing: CupertinoButton(
-                                onPressed: _setMirror,
+                                onPressed: () {},
                                 child: _selectMirror("Select rootfs mirror"),
                               ),
                             )

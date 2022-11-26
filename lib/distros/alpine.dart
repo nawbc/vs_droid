@@ -7,4 +7,5 @@ final alpineDistro = Distro(
   sha256: "cb5dc88e0328765b0decae0da390c2eeeb9414ae82f79784cf37d7c521646a59",
   chineseMirrors: ["tsinghua", "aliyun", "ustc", "apline"],
   defaultMirror: 'tsinghua',
+  replaceCNMirrorShell: {},
 );

@@ -18,16 +18,20 @@ class ConfigModel extends ChangeNotifier {
   late Directory _termuxHome;
   Directory get termuxHome => _termuxHome;
 
-  late Directory _prootDistroDir;
-  Directory get prootDistroDir => _prootDistroDir;
-
   late bool _isAppInit;
   bool get isAppInit => _isAppInit;
-
   Future<void> setAppInit(bool arg) async {
     _isAppInit = arg;
     await Store.setBool(IS_APP_INIT, arg);
     notifyListeners();
+  }
+
+  late bool _haveReadUsage;
+  bool get haveReadUsage => _haveReadUsage;
+
+  Future<void> setReadUsage(bool arg) async {
+    _haveReadUsage = arg;
+    await Store.setBool(HAVE_READ_USAGE, arg);
   }
 
   late String _internalIP;
@@ -59,13 +63,13 @@ class ConfigModel extends ChangeNotifier {
   Future<void> init() async {
     try {
       _terminalQuakeMode = await Store.getBool(TERMINAL_QUAKE_MODE) ?? false;
+      _haveReadUsage = await Store.getBool(HAVE_READ_USAGE) ?? false;
       _isAppInit = await Store.getBool(IS_APP_INIT) ?? false;
       _serverPort = await Store.getString(SERVER_PORT) ?? "20771";
       _filesDir = Directory("/data/data/com.deskbtm.vs_droid/files");
       _termuxUsr = Directory("${_filesDir.path}/usr");
       _termuxBin = Directory("$_termuxUsr/bin");
       _termuxHome = Directory("${_filesDir.path}/home");
-      _prootDistroDir = Directory("$_termuxUsr/var/lib/proot-distro/installed-rootfs");
     } catch (e, s) {
       await Sentry.captureException(
         e,

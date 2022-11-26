@@ -7,7 +7,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 
 /// Signature for the callback that's called when a [InnerDrawer] is
 /// opened or closed.
@@ -15,8 +14,7 @@ typedef InnerDrawerCallback = void Function(bool isOpened);
 
 /// Signature for when a pointer that is in contact with the screen and moves to the right or left
 /// values between 1 and 0
-typedef InnerDragUpdateCallback = void Function(
-    double value, InnerDrawerDirection? direction);
+typedef InnerDragUpdateCallback = void Function(double value, InnerDrawerDirection? direction);
 
 /// The possible position of a [InnerDrawer].
 enum InnerDrawerDirection {
@@ -135,12 +133,9 @@ class InnerDrawer extends StatefulWidget {
   InnerDrawerState createState() => InnerDrawerState();
 }
 
-class InnerDrawerState extends State<InnerDrawer>
-    with SingleTickerProviderStateMixin {
-  ColorTween _colorTransitionChild =
-      ColorTween(begin: Colors.transparent, end: Colors.black54);
-  ColorTween _colorTransitionScaffold =
-      ColorTween(begin: Colors.black54, end: Colors.transparent);
+class InnerDrawerState extends State<InnerDrawer> with SingleTickerProviderStateMixin {
+  ColorTween _colorTransitionChild = ColorTween(begin: Colors.transparent, end: Colors.black54);
+  ColorTween _colorTransitionScaffold = ColorTween(begin: Colors.black54, end: Colors.transparent);
 
   double _initWidth = _kWidth;
   Orientation _orientation = Orientation.portrait;
@@ -148,14 +143,9 @@ class InnerDrawerState extends State<InnerDrawer>
 
   @override
   void initState() {
-    _position = _leftChild != null
-        ? InnerDrawerDirection.start
-        : InnerDrawerDirection.end;
+    _position = _leftChild != null ? InnerDrawerDirection.start : InnerDrawerDirection.end;
 
-    _controller = AnimationController(
-        value: 1,
-        duration: widget.duration ?? _kBaseSettleDuration,
-        vsync: this)
+    _controller = AnimationController(value: 1, duration: widget.duration ?? _kBaseSettleDuration, vsync: this)
       ..addListener(_animationChanged)
       ..addStatusListener(_animationStatusChanged);
     super.initState();
@@ -174,15 +164,13 @@ class InnerDrawerState extends State<InnerDrawer>
       // The animation controller's state is our build state, and it changed already.
     });
     if (widget.colorTransitionChild != null) {
-      _colorTransitionChild = ColorTween(
-          begin: widget.colorTransitionChild!.withOpacity(0.0),
-          end: widget.colorTransitionChild);
+      _colorTransitionChild =
+          ColorTween(begin: widget.colorTransitionChild!.withOpacity(0.0), end: widget.colorTransitionChild);
     }
 
     if (widget.colorTransitionScaffold != null) {
-      _colorTransitionScaffold = ColorTween(
-          begin: widget.colorTransitionScaffold,
-          end: widget.colorTransitionScaffold!.withOpacity(0.0));
+      _colorTransitionScaffold =
+          ColorTween(begin: widget.colorTransitionScaffold, end: widget.colorTransitionScaffold!.withOpacity(0.0));
     }
 
     if (widget.onDragUpdate != null && _controller.value < 1) {
@@ -258,8 +246,7 @@ class InnerDrawerState extends State<InnerDrawer>
   /// get width of screen after initState
   void _updateWidth() {
     WidgetsBinding.instance!.addPostFrameCallback((_) {
-      final RenderBox? box =
-          _drawerKey.currentContext!.findRenderObject() as RenderBox?;
+      final RenderBox? box = _drawerKey.currentContext!.findRenderObject() as RenderBox?;
       //final RenderBox box = context.findRenderObject();
       if (box != null && box.hasSize && box.size.width > 300) {
         setState(() {
@@ -280,9 +267,7 @@ class InnerDrawerState extends State<InnerDrawer>
       _position = InnerDrawerDirection.end;
     }
 
-    double offset = _position == InnerDrawerDirection.start
-        ? widget.offset.left
-        : widget.offset.right;
+    double offset = _position == InnerDrawerDirection.start ? widget.offset.left : widget.offset.right;
 
     double ee = 1;
     if (offset <= 0.2) {
@@ -293,9 +278,7 @@ class InnerDrawerState extends State<InnerDrawer>
       ee = 1.05;
     }
 
-    offset = 1 -
-        (pow(offset / ee, 1 / 2)
-            as double); //(num.parse(pow(offset/2,1/3).toStringAsFixed(1)));
+    offset = 1 - (pow(offset / ee, 1 / 2) as double); //(num.parse(pow(offset/2,1/3).toStringAsFixed(1)));
 
     switch (_position) {
       case InnerDrawerDirection.end:
@@ -323,8 +306,7 @@ class InnerDrawerState extends State<InnerDrawer>
   void _settle(DragEndDetails details) {
     if (_controller.isDismissed) return;
     if (details.velocity.pixelsPerSecond.dx.abs() >= _kMinFlingVelocity) {
-      double visualVelocity =
-          (details.velocity.pixelsPerSecond.dx + _velocity) / _width;
+      double visualVelocity = (details.velocity.pixelsPerSecond.dx + _velocity) / _width;
 
       switch (_position) {
         case InnerDrawerDirection.end:
@@ -393,23 +375,17 @@ class InnerDrawerState extends State<InnerDrawer>
 
   /// returns the left or right animation type based on InnerDrawerDirection
   InnerDrawerAnimation get _animationType {
-    return _position == InnerDrawerDirection.start
-        ? widget.leftAnimationType
-        : widget.rightAnimationType;
+    return _position == InnerDrawerDirection.start ? widget.leftAnimationType : widget.rightAnimationType;
   }
 
   /// returns the left or right scale based on InnerDrawerDirection
   double get _scaleFactor {
-    return _position == InnerDrawerDirection.start
-        ? widget.scale.left
-        : widget.scale.right;
+    return _position == InnerDrawerDirection.start ? widget.scale.left : widget.scale.right;
   }
 
   /// returns the left or right offset based on InnerDrawerDirection
   double get _offset {
-    return _position == InnerDrawerDirection.start
-        ? widget.offset.left
-        : widget.offset.right;
+    return _position == InnerDrawerDirection.start ? widget.offset.left : widget.offset.right;
   }
 
   /// return width with specific offset
@@ -454,8 +430,7 @@ class InnerDrawerState extends State<InnerDrawer>
     Widget container = Container(
         key: _drawerKey,
         decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(
-                widget.borderRadius * (1 - _controller.value)),
+            borderRadius: BorderRadius.circular(widget.borderRadius * (1 - _controller.value)),
             boxShadow: widget.boxShadow ??
                 [
                   BoxShadow(
@@ -465,8 +440,7 @@ class InnerDrawerState extends State<InnerDrawer>
                 ]),
         child: widget.borderRadius != 0
             ? ClipRRect(
-                borderRadius: BorderRadius.circular(
-                    (1 - _controller.value) * widget.borderRadius),
+                borderRadius: BorderRadius.circular((1 - _controller.value) * widget.borderRadius),
                 child: scaffoldChild)
             : scaffoldChild);
 
@@ -480,8 +454,8 @@ class InnerDrawerState extends State<InnerDrawer>
 
     // Vertical translate
     if ((widget.offset.top > 0 || widget.offset.bottom > 0)) {
-      final double translateY = MediaQuery.of(context).size.height *
-          (widget.offset.top > 0 ? -widget.offset.top : widget.offset.bottom);
+      final double translateY =
+          MediaQuery.of(context).size.height * (widget.offset.top > 0 ? -widget.offset.top : widget.offset.bottom);
       container = Transform.translate(
         offset: Offset(0, translateY * (1 - _controller.value)),
         child: container,
@@ -522,8 +496,7 @@ class InnerDrawerState extends State<InnerDrawer>
 
   /// return widget with specific animation
   Widget _animatedChild() {
-    Widget? child =
-        _position == InnerDrawerDirection.start ? _leftChild : _rightChild;
+    Widget? child = _position == InnerDrawerDirection.start ? _leftChild : _rightChild;
     if (_swipeChild) {
       child = GestureDetector(
         onHorizontalDragUpdate: _move,
@@ -566,14 +539,10 @@ class InnerDrawerState extends State<InnerDrawer>
     }
     dragAreaWidth = max(dragAreaWidth, _kEdgeDragWidth);
 
-    if (_controller.status == AnimationStatus.completed &&
-        _swipe &&
-        child != null) {
+    if (_controller.status == AnimationStatus.completed && _swipe && child != null) {
       return Align(
         alignment: alignment,
-        child: Container(
-            color: Colors.transparent,
-            width: dragAreaWidth + widget.triggerWidth),
+        child: Container(color: Colors.transparent, width: dragAreaWidth + widget.triggerWidth),
       );
     } else {
       return null;
@@ -585,8 +554,7 @@ class InnerDrawerState extends State<InnerDrawer>
     //assert(debugCheckHasMaterialLocalizations(context));
 
     /// initialize the correct width
-    if (_initWidth == 400 ||
-        MediaQuery.of(context).orientation != _orientation) {
+    if (_initWidth == 400 || MediaQuery.of(context).orientation != _orientation) {
       _updateWidth();
       _orientation = MediaQuery.of(context).orientation;
     }
@@ -618,10 +586,7 @@ class InnerDrawerState extends State<InnerDrawer>
                 children: <Widget>[
                   ///Gradient
                   Container(
-                    width: _controller.value == 0 ||
-                            _animationType == InnerDrawerAnimation.linear
-                        ? 0
-                        : null,
+                    width: _controller.value == 0 || _animationType == InnerDrawerAnimation.linear ? 0 : null,
                     color: _colorTransitionChild.evaluate(_controller),
                   ),
                   Align(
@@ -633,10 +598,8 @@ class InnerDrawerState extends State<InnerDrawer>
                   ),
 
                   ///Trigger
-                  _trigger(AlignmentDirectional.centerStart, _leftChild) ??
-                      const SizedBox(),
-                  _trigger(AlignmentDirectional.centerEnd, _rightChild) ??
-                      const SizedBox(),
+                  _trigger(AlignmentDirectional.centerStart, _leftChild) ?? const SizedBox(),
+                  _trigger(AlignmentDirectional.centerEnd, _rightChild) ?? const SizedBox(),
                 ].toList(),
               ),
             ),

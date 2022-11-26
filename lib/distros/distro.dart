@@ -1,3 +1,6 @@
+import 'package:vs_droid/distros/ubuntu.dart';
+import 'alpine.dart';
+
 class Distro {
   String arch;
   String? releaseUri;
@@ -7,8 +10,10 @@ class Distro {
   final String name;
   final String semver;
   final String sha256;
-  late String overwriteDistro;
+  final Map replaceCNMirrorShell;
   final String defaultMirror;
+
+  late String overwriteDistro;
   late String tarball;
   late List<String> chineseMirrors;
 
@@ -19,6 +24,7 @@ class Distro {
     required this.sha256,
     required this.chineseMirrors,
     required this.defaultMirror,
+    required this.replaceCNMirrorShell,
     this.arch = "aarch64",
     this.releaseUri,
     this.releaseUriCN,
@@ -31,26 +37,46 @@ TARBALL_URL['$arch']="$tarball"
 TARBALL_SHA256['$arch']="$sha256"
 """;
   }
-
-  String setChineseMirror(String mirror) {
-    String shell;
-    switch (mirror) {
-      case "tsinghua":
-        shell = "sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories";
-        break;
-      case "aliyun":
-        shell = "sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories";
-        break;
-      case "ustc":
-        shell = "sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories";
-        break;
-      case "apline":
-        shell = "";
-        break;
-      default:
-        shell = '';
-    }
-
-    return shell;
-  }
 }
+
+// ignore: non_constant_identifier_names
+var DISTRO_MAP = {
+  "ubuntu": ubuntuDistro,
+  "alpine": alpineDistro,
+};
+
+const VALID_ROOTFS = [
+  {
+    "label": "Ubuntu(built-in)",
+    "value": "ubuntu",
+  },
+  {
+    "label": "Alpine Linux(coming soon)",
+    "value": "alpine",
+  },
+  {
+    "label": "Manjaro(coming soon)",
+    "value": "manjaro",
+    "url": "https://github.com/manjaro-arm/rootfs/releases",
+  },
+  {
+    "label": "Arch Linux(coming soon)",
+    "value": "arch",
+    "url": "",
+  },
+  {
+    "label": "Debian(coming soon)",
+    "value": "debian",
+    "url": "",
+  },
+  {
+    "label": "Fedora(coming soon)",
+    "value": "fedora",
+    "url": "",
+  },
+  {
+    "label": "OpenSUSE(coming soon)",
+    "value": "openSUSE",
+    "url": "",
+  }
+];
