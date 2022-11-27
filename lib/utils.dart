@@ -86,12 +86,14 @@ Future<ProcessResult> chmod(String path, [String access = "775"]) async {
 
 Future<void> loginRootfs([String name = "ubuntu"]) async {}
 
-Future<bool> checkEnv(
-  Directory usr,
-) async {
-  // usr.existsSync() &&
+Future<bool> checkEnv(Directory usr, String rootfsName) async {
+  final isUsr = await usr.exists();
+  final isRootfs = await Directory("${usr.path}/var/lib/proot-distro/installed-rootfs/$rootfsName").exists();
+  if (!isUsr && !isRootfs) {
+    return false;
+  }
 
-  return false;
+  return true;
 }
 
 Future<bool> checkAssets(
@@ -111,7 +113,7 @@ proot-distro login $name
 code-server -v
 """);
     final output = await pty.output.cast<List<int>>().transform(const Utf8Decoder()).last;
-    log(output.);
+    // log(output.);
     pty.kill();
   } catch (e) {
     return false;
