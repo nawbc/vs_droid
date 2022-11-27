@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:system_info2/system_info2.dart';
 import 'droid_pty.dart';
@@ -84,9 +86,9 @@ Future<ProcessResult> chmod(String path, [String access = "775"]) async {
 
 Future<void> loginRootfs([String name = "ubuntu"]) async {}
 
-bool checkEnv(
+Future<bool> checkEnv(
   Directory usr,
-) {
+) async {
   // usr.existsSync() &&
 
   return false;
@@ -98,14 +100,18 @@ Future<bool> checkAssets(
   return usr.exists();
 }
 
-Future<bool> codeServerHealth(Directory usr) async {
+Future<bool> codeServerHealth(Directory usr, String name) async {
   final pty = DroidPty(
     usr.path,
   );
 
   try {
-    pty.exec("code-server -v");
-    await pty.output.last;
+    pty.exec("""
+proot-distro login $name
+code-server -v
+""");
+    final output = await pty.output.cast<List<int>>().transform(const Utf8Decoder()).last;
+    log(output.);
     pty.kill();
   } catch (e) {
     return false;
