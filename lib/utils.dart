@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:system_info2/system_info2.dart';
+import 'droid_pty.dart';
 
 /// RFC1918 https://en.wikipedia.org/wiki/Private_network
 Future<String?> getInternalIp() async {
@@ -69,11 +70,6 @@ getSysArch() {
   return arch;
 }
 
-downloadBootstrap() async {
-  const VERSION = "2022.10.23-r1";
-  // const VERSION_C = VERSION + "bootstrap-2022.10.23-r1+apt-android-7"
-}
-
 Future<ProcessResult> chmod(String path, [String access = "775"]) async {
   return Process.run(
     'chmod',
@@ -84,4 +80,35 @@ Future<ProcessResult> chmod(String path, [String access = "775"]) async {
     ],
     workingDirectory: '/',
   );
+}
+
+Future<void> loginRootfs([String name = "ubuntu"]) async {}
+
+bool checkEnv(
+  Directory usr,
+) {
+  // usr.existsSync() &&
+
+  return false;
+}
+
+Future<bool> checkAssets(
+  Directory usr,
+) async {
+  return usr.exists();
+}
+
+Future<bool> codeServerHealth(Directory usr) async {
+  final pty = DroidPty(
+    usr.path,
+  );
+
+  try {
+    pty.exec("code-server -v");
+    await pty.output.last;
+    pty.kill();
+  } catch (e) {
+    return false;
+  } finally {}
+  return true;
 }

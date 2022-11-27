@@ -18,10 +18,11 @@ class ConfigModel extends ChangeNotifier {
   late Directory _termuxHome;
   Directory get termuxHome => _termuxHome;
 
-  late bool _isAppInit;
-  bool get isAppInit => _isAppInit;
+  late bool _isAppInited;
+  bool get isAppInited => _isAppInited;
+
   Future<void> setAppInit(bool arg) async {
-    _isAppInit = arg;
+    _isAppInited = arg;
     await Store.setBool(IS_APP_INIT, arg);
     notifyListeners();
   }
@@ -60,12 +61,21 @@ class ConfigModel extends ChangeNotifier {
     await Store.setString(SERVER_PORT, port);
   }
 
+  String? _currentRootfsId;
+  String? get currentRootfsId => _currentRootfsId;
+
+  Future<void> setCurrentRootfsId(String id) async {
+    _currentRootfsId = id;
+    await Store.setString(CURRENT_ROOTFS_ID, id);
+  }
+
   Future<void> init() async {
     try {
       _terminalQuakeMode = await Store.getBool(TERMINAL_QUAKE_MODE) ?? false;
       _haveReadUsage = await Store.getBool(HAVE_READ_USAGE) ?? false;
-      _isAppInit = await Store.getBool(IS_APP_INIT) ?? false;
+      _isAppInited = await Store.getBool(IS_APP_INIT) ?? false;
       _serverPort = await Store.getString(SERVER_PORT) ?? "20771";
+      _currentRootfsId = await Store.getString(CURRENT_ROOTFS_ID);
       _filesDir = Directory("/data/data/com.deskbtm.vs_droid/files");
       _termuxUsr = Directory("${_filesDir.path}/usr");
       _termuxBin = Directory("$_termuxUsr/bin");

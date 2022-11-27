@@ -123,6 +123,13 @@ class QuickSettingsState extends State<QuickSettings> {
             title: const Text("Allow Lan", style: TextStyle(fontSize: 14)),
             contentPadding: const EdgeInsets.only(left: 15, right: 25),
           ),
+          // InkWell(
+          //   onTap: () async {},
+          //   child: const ListTile(
+          //     title: Text("Update Code Server", style: TextStyle(fontSize: 14)),
+          //     contentPadding: EdgeInsets.only(left: 15, right: 25),
+          //   ),
+          // ),
         ],
       ),
     ];

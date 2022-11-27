@@ -58,8 +58,8 @@ class _InitVscPageState extends State<InitVscPage> {
   late List<String> _envAssets;
 
   /// Assets lock, avoid conflict.
-  late bool _mutex;
-  late bool _isInstalled;
+  late bool _installationMutex;
+  late bool _isTermuxInstalled;
 
   final terminal = Terminal(
     maxLines: 999999,
@@ -73,7 +73,7 @@ class _InitVscPageState extends State<InitVscPage> {
     _distro = ubuntuDistro;
     _envAssets = [...DEB_ASSETS, "${_distro.id}-${_distro.arch}-${_distro.semver}.tar.xz"];
     _rootfsPath = "ubuntu";
-    _mutex = false;
+    _installationMutex = false;
   }
 
   @override
@@ -81,11 +81,11 @@ class _InitVscPageState extends State<InitVscPage> {
     super.didChangeDependencies();
     _tm = Provider.of<ThemeModel>(context);
     _cm = Provider.of<ConfigModel>(context);
-    _isInstalled = _cm.termuxUsr.existsSync();
+    _isTermuxInstalled = _cm.termuxUsr.existsSync();
 
-    _pseudoWrite("Linux runtime is ${_isInstalled ? "" : "not"}installed ");
-    if (_isInstalled) {
-      _pseudoWrite("If you wanna reset runtime, tap delete rootfs button...");
+    _pseudoWrite("Linux runtime is ${_isTermuxInstalled ? "" : "not"}installed ");
+    if (_isTermuxInstalled) {
+      _pseudoWrite("If you wanna to reset runtime, tap delete sandbox button...");
     } else {
       _pseudoWrite("Setting required options and tapping install button to init environment...");
     }
@@ -103,7 +103,13 @@ class _InitVscPageState extends State<InitVscPage> {
     });
 
     _pty?.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
+      log(data);
       terminal.write(data);
+    }, onDone: () {
+      var a = 10;
+      print(a);
+
+      print('----------------');
     });
 
     terminal.onResize = (w, h, pw, ph) {
@@ -112,7 +118,7 @@ class _InitVscPageState extends State<InitVscPage> {
   }
 
   Future<void> _deleteSandbox() async {
-    if (_mutex) {
+    if (_installationMutex) {
       Fluttertoast.showToast(msg: "Installing...");
       return;
     }
@@ -128,7 +134,7 @@ class _InitVscPageState extends State<InitVscPage> {
     _pseudoWrite("remove successfully...");
     if (mounted) {
       setState(() {
-        _isInstalled = false;
+        _isTermuxInstalled = false;
       });
     }
   }
@@ -308,6 +314,7 @@ proot-distro login ubuntu
 $replaceMirrorShell
 mkdir -p /home/code-server
 apt update && apt install $_codeServerPath -y
+exit
 """);
   }
 
@@ -321,7 +328,7 @@ apt update && apt install $_codeServerPath -y
   }
 
   Future<void> _install() async {
-    if (_mutex) {
+    if (_installationMutex) {
       Fluttertoast.showToast(msg: "Installing...");
       return;
     }
@@ -329,10 +336,10 @@ apt update && apt install $_codeServerPath -y
     /// verify assets available.
     if (!assetsValidate()) return;
 
-    _mutex = true;
+    _installationMutex = true;
     // Prepare termux env, install deb packages.
     await _prepareTermux().catchError((err) {
-      _mutex = false;
+      _installationMutex = false;
       showAlertModal(context, "Prepare assets failed");
       throw err;
     });
@@ -341,7 +348,7 @@ apt update && apt install $_codeServerPath -y
     await _prepareCodeServer();
 
     setState(() {
-      _mutex = false;
+      _installationMutex = false;
     });
   }
 
@@ -383,7 +390,7 @@ apt update && apt install $_codeServerPath -y
 
   @override
   Widget build(BuildContext context) {
-    log("$_isInstalled");
+    log("$_isTermuxInstalled");
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(left: 30, right: 30),
@@ -422,13 +429,14 @@ apt update && apt install $_codeServerPath -y
                                 SizedBox(
                                   height: 30,
                                   child: CupertinoButton(
-                                    padding: EdgeInsets.only(left: 30, right: _isInstalled ? 0 : 30, top: 5, bottom: 5),
+                                    padding: EdgeInsets.only(
+                                        left: 30, right: _isTermuxInstalled ? 0 : 30, top: 5, bottom: 5),
                                     onPressed: _deleteSandbox,
                                     child:
                                         Text('Delete sandbox', style: TextStyle(fontSize: 15, color: Colors.red[800])),
                                   ),
                                 ),
-                                _isInstalled
+                                _isTermuxInstalled
                                     ? Container()
                                     : Row(
                                         children: [
