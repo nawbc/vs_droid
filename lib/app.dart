@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
@@ -154,8 +155,10 @@ class _Home extends State<Home> {
   Future<bool> appInit() async {
     var result = await Connectivity().checkConnectivity();
     await _setInternalIp(result, notify: false).catchError((err) {});
-
-    return await checkEnv(_cm.termuxUsr, _cm.currentRootfsId!);
+    var envPrepared = await checkEnv(_cm.termuxUsr, _cm.currentRootfsId).catchError((err) {
+      log("$err");
+    });
+    return envPrepared;
   }
 
   @override

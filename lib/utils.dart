@@ -116,7 +116,7 @@ class OutputCollector {
   }
 }
 
-Future<bool> checkEnv(Directory usr, String rootfsName) async {
+Future<bool> checkEnv(Directory usr, String? rootfsName) async {
   final root = Directory("${usr.path}/var/lib/proot-distro/installed-rootfs/$rootfsName");
   final isUsr = await usr.exists();
   final isRootfs = await root.exists();
@@ -128,7 +128,7 @@ Future<bool> checkEnv(Directory usr, String rootfsName) async {
 }
 
 /// Deprecated
-Future<bool> codeServerHealth(Directory usr, String name) async {
+Future<bool> codeServerHealth(Directory usr, String? name) async {
   final pty = VSDroidPty(
     usr.path,
   );
