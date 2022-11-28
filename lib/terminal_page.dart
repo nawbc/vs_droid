@@ -61,32 +61,39 @@ class _TerminalPageState extends State<TerminalPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black,
-      child: SafeArea(
-        child: TerminalView(
-          terminal,
-          padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
-          controller: terminalController,
-          autofocus: true,
-          theme: terminalDarkTheme,
-          alwaysShowCursor: true,
-          backgroundOpacity: 1,
-          onSecondaryTapDown: (details, offset) async {
-            final selection = terminalController.selection;
-            if (selection != null) {
-              final text = terminal.buffer.getText(selection);
-              terminalController.clearSelection();
-              await Clipboard.setData(ClipboardData(text: text));
-            } else {
-              final data = await Clipboard.getData('text/plain');
-              final text = data?.text;
-              if (text != null) {
-                terminal.paste(text);
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.black,
+        statusBarIconBrightness: Brightness.light,
+      ),
+      child: Container(
+        color: Colors.black,
+        child: SafeArea(
+          child: TerminalView(
+            terminal,
+            padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
+            controller: terminalController,
+            autofocus: true,
+            theme: terminalDarkTheme,
+            alwaysShowCursor: true,
+            backgroundOpacity: 1,
+            onSecondaryTapDown: (details, offset) async {
+              final selection = terminalController.selection;
+              if (selection != null) {
+                final text = terminal.buffer.getText(selection);
+                terminalController.clearSelection();
+                await Clipboard.setData(ClipboardData(text: text));
+              } else {
+                final data = await Clipboard.getData('text/plain');
+                final text = data?.text;
+                if (text != null) {
+                  terminal.paste(text);
+                }
               }
-            }
-          },
-          // backgroundOpacity: 0,
+            },
+            // backgroundOpacity: 0,
+          ),
         ),
       ),
     );

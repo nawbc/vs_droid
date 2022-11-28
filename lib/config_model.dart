@@ -21,6 +21,10 @@ class ConfigModel extends ChangeNotifier {
   late bool _isCodeServerInited;
   bool get isCodeServerInited => _isCodeServerInited;
 
+  void flush() {
+    notifyListeners();
+  }
+
   Future<void> setCodeServerInit(bool arg) async {
     _isCodeServerInited = arg;
     await Store.setBool(IS_CODE_SERVER_INIT, arg);

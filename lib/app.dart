@@ -97,7 +97,9 @@ class _InnerVSDroid extends State<InnerVSDroid> {
           return AnnotatedRegion<SystemUiOverlayStyle>(
             value: const SystemUiOverlayStyle(
               systemNavigationBarIconBrightness: Brightness.dark,
-              systemNavigationBarColor: Colors.black,
+              systemNavigationBarColor: Colors.transparent,
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.dark,
             ),
             child: CupertinoApp(
               theme: CupertinoThemeData(
@@ -186,6 +188,7 @@ class _Home extends State<Home> {
     return FutureBuilder(
       future: appInit(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
+        bool isInit = snapshot.data == true;
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasError || snapshot.data == null) {
             return const ErrorBoard();
@@ -215,10 +218,11 @@ class _Home extends State<Home> {
                   alignment: Alignment.center,
                   fit: StackFit.expand,
                   children: [
-                    snapshot.data == true ? const VscPage() : const InitVscPage(),
+                    isInit ? const VscPage() : const InitVscPage(),
                     Positioned(
-                      top: 25,
-                      left: 20,
+                      bottom: isInit ? 130 : null,
+                      top: isInit ? null : 30,
+                      left: 10,
                       child: GestureDetector(
                         onTap: () {
                           _innerDrawerKey.currentState?.open();

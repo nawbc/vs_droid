@@ -111,8 +111,11 @@ class _InitVscPageState extends State<InitVscPage> {
 
     _pty?.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
       if (data.contains("CODE_SERVER_INSTALLATION_COMPLETE_FLAG") && !data.contains("echo")) {
-        _cm.setCurrentRootfsId(_distro.id);
-        _cm.setCodeServerInit(true);
+        _clean().then((value) {
+          _cm.setCurrentRootfsId(_distro.id);
+          _cm.setCodeServerInit(true);
+          _pty?.kill();
+        });
       }
       terminal.write(data);
     });
@@ -157,9 +160,6 @@ class _InitVscPageState extends State<InitVscPage> {
               title: Text(e["label"]!, style: const TextStyle(fontSize: 14)),
               onPressed: () {
                 Fluttertoast.showToast(msg: "Coming soon");
-                // setState(() {
-                //   _distro = DISTRO_MAP[e["value"]]!;
-                // });
               },
             ),
           )
@@ -317,7 +317,6 @@ mv $rootfsTarball \$PROOT_DISTRO/dlcache
 proot-distro install ubuntu
 proot-distro login ubuntu
 $replaceMirrorShell
-mkdir -p /home/code-server
 apt install $_codeServerPath -y && echo CODE_SERVER_INSTALLATION_COMPLETE_FLAG
 """);
   }
@@ -394,7 +393,6 @@ apt install $_codeServerPath -y && echo CODE_SERVER_INSTALLATION_COMPLETE_FLAG
 
   @override
   Widget build(BuildContext context) {
-    log("$_isTermuxInstalled");
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.only(left: 30, right: 30),

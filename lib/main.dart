@@ -13,14 +13,14 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (Platform.isAndroid) {
-    SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarDividerColor: Colors.transparent,
-    );
-    SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
-  }
+  // if (Platform.isAndroid) {
+  //   SystemUiOverlayStyle systemUiOverlayStyle = const SystemUiOverlayStyle(
+  //     statusBarColor: Colors.transparent,
+  //     systemNavigationBarColor: Colors.transparent,
+  //     systemNavigationBarDividerColor: Colors.transparent,
+  //   );
+  //   // SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+  // }
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 

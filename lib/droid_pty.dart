@@ -70,15 +70,17 @@ class VSDroidPty {
   void ackRead() => _pty.ackRead();
 
   /// Preset shells
-  void startCodeServer({
+  Future<void> startCodeServer({
     String name = "ubuntu",
     String host = LOCAL_CODE_SERVER_ADDR,
-  }) {
+  }) async {
+    final collector = OutputCollector(this);
     exec("""
 proot-distro login $name
 code-server --auth none --bind-addr $host
 """);
-
-    final collector = OutputCollector(this);
+    return collector.waitForOutput("code-server").timeout(const Duration(seconds: 5)).catchError((err) {
+      throw Exception(err);
+    });
   }
 }

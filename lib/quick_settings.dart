@@ -6,8 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:unicons/unicons.dart';
 import 'package:vs_droid/config_model.dart';
 import 'package:vs_droid/terminal_page.dart';
-import 'package:vs_droid/utils.dart';
 import 'components/switch/switch.dart';
+import 'droid_pty.dart';
 
 class QuickSettings extends StatefulWidget {
   const QuickSettings({Key? key}) : super(key: key);
@@ -19,8 +19,9 @@ class QuickSettings extends StatefulWidget {
 }
 
 class QuickSettingsState extends State<QuickSettings> {
+  VSDroidPty? _pty;
   late ConfigModel _cm;
-
+  late bool _switch1;
   final TextEditingController _c1 = TextEditingController();
   final TextEditingController _c2 = TextEditingController();
   final FocusNode _f1 = FocusNode();
@@ -29,6 +30,7 @@ class QuickSettingsState extends State<QuickSettings> {
   @override
   void initState() {
     super.initState();
+    _switch1 = false;
     _f1.addListener(() {
       if (!_f1.hasFocus && mounted) {
         _cm.setInternalIP(_c1.text);
@@ -46,6 +48,28 @@ class QuickSettingsState extends State<QuickSettings> {
     _cm = Provider.of<ConfigModel>(context);
     _c1.text = _cm.internalIP!;
     _c2.text = _cm.serverPort;
+  }
+
+  _shareCodeServer(bool value) async {
+    _pty ??= VSDroidPty(_cm.termuxUsr.path);
+    final addr = "${_cm.internalIP}:${_cm.serverPort}";
+    if (value) {
+      setState(() {
+        _switch1 = true;
+      });
+      await _pty?.startCodeServer(name: _cm.currentRootfsId!, host: addr).catchError((err) {
+        setState(() {
+          _switch1 = false;
+        });
+      });
+      Fluttertoast.showToast(msg: "VS Droid running on $addr");
+    } else {
+      setState(() {
+        _switch1 = false;
+      });
+      _pty?.kill();
+      _pty = null;
+    }
   }
 
   @override
@@ -90,8 +114,8 @@ class QuickSettingsState extends State<QuickSettings> {
           ),
           ListTile(
             trailing: DroidSwitch(
-              onChanged: (bool value) {},
-              value: false,
+              onChanged: _shareCodeServer,
+              value: _switch1,
             ),
             subtitle: Wrap(
               crossAxisAlignment: WrapCrossAlignment.center,
@@ -126,13 +150,12 @@ class QuickSettingsState extends State<QuickSettings> {
           ),
           InkWell(
             onTap: () async {
-              if (_cm.currentRootfsId != null) {
-                codeServerHealth(_cm.termuxUsr, _cm.currentRootfsId!);
-              }
+              _cm.flush();
             },
             child: const ListTile(
-              title: Text("Update Code Server", style: TextStyle(fontSize: 14)),
+              title: Text("Refresh Code Server", style: TextStyle(fontSize: 14)),
               contentPadding: EdgeInsets.only(left: 15, right: 25),
+              subtitle: Text("restart the code server when lost connection"),
             ),
           ),
         ],

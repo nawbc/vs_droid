@@ -90,7 +90,7 @@ class OutputCollector {
 
   OutputCollector(this._pty) {
     subscription = _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
-      // log(data);
+      log(data);
       buffer.write(data);
     });
   }
@@ -133,7 +133,7 @@ Future<bool> codeServerHealth(Directory usr, String name) async {
     usr.path,
   );
 
-  var collector = OutputCollector(pty);
+  final collector = OutputCollector(pty);
 
   try {
     pty.exec("""
