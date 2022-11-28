@@ -58,17 +58,14 @@ class QuickSettingsState extends State<QuickSettings> {
         children: <Widget>[
           InkWell(
             onTap: () async {
-              if (_cm.currentRootfsId != null) {
-                codeServerHealth(_cm.termuxUsr, _cm.currentRootfsId!);
-              }
-              // await Navigator.of(context).push(
-              //   CupertinoPageRoute<void>(
-              //     maintainState: false,
-              //     builder: (BuildContext context) {
-              //       return const TerminalPage();
-              //     },
-              //   ),
-              // );
+              await Navigator.of(context).push(
+                CupertinoPageRoute<void>(
+                  maintainState: false,
+                  builder: (BuildContext context) {
+                    return const TerminalPage();
+                  },
+                ),
+              );
             },
             child: ListTile(
               trailing: SizedBox(
@@ -127,13 +124,17 @@ class QuickSettingsState extends State<QuickSettings> {
             title: const Text("Allow Lan", style: TextStyle(fontSize: 14)),
             contentPadding: const EdgeInsets.only(left: 15, right: 25),
           ),
-          // InkWell(
-          //   onTap: () async {},
-          //   child: const ListTile(
-          //     title: Text("Update Code Server", style: TextStyle(fontSize: 14)),
-          //     contentPadding: EdgeInsets.only(left: 15, right: 25),
-          //   ),
-          // ),
+          InkWell(
+            onTap: () async {
+              if (_cm.currentRootfsId != null) {
+                codeServerHealth(_cm.termuxUsr, _cm.currentRootfsId!);
+              }
+            },
+            child: const ListTile(
+              title: Text("Update Code Server", style: TextStyle(fontSize: 14)),
+              contentPadding: EdgeInsets.only(left: 15, right: 25),
+            ),
+          ),
         ],
       ),
     ];

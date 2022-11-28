@@ -110,7 +110,6 @@ class _InitVscPageState extends State<InitVscPage> {
     });
 
     _pty?.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
-      log(data);
       if (data.contains("CODE_SERVER_INSTALLATION_COMPLETE_FLAG") && !data.contains("echo")) {
         _cm.setCurrentRootfsId(_distro.id);
         _cm.setCodeServerInit(true);

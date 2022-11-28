@@ -5,6 +5,9 @@ import 'package:flutter_pty/flutter_pty.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
 
+import 'constant.dart';
+import 'utils.dart';
+
 ///
 ///Init the termux environment
 ///
@@ -67,21 +70,15 @@ class VSDroidPty {
   void ackRead() => _pty.ackRead();
 
   /// Preset shells
-  void startCodeServer() => exec("""
-
-""");
-
-  Future<void> loginRootfs([String name = "ubuntu"]) async {}
-
-  Future<bool> codeServerHealth(String name) async {
-    try {
-      exec("""
+  void startCodeServer({
+    String name = "ubuntu",
+    String host = LOCAL_CODE_SERVER_ADDR,
+  }) {
+    exec("""
 proot-distro login $name
-code-server -v
+code-server --auth none --bind-addr $host
 """);
-    } catch (e) {
-      return false;
-    } finally {}
-    return true;
+
+    final collector = OutputCollector(this);
   }
 }

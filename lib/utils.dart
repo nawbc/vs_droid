@@ -89,7 +89,10 @@ class OutputCollector {
   final VSDroidPty _pty;
 
   OutputCollector(this._pty) {
-    subscription = _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen(buffer.write);
+    subscription = _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
+      // log(data);
+      buffer.write(data);
+    });
   }
 
   final StringBuffer buffer = StringBuffer();
@@ -106,51 +109,43 @@ class OutputCollector {
     }
   }
 
-  Future<void> waitForOutput(Pattern pattern) async {
+  Future<void> waitForOutput(Pattern pattern, [int timeout = 2000]) async {
     while (pattern.allMatches(output).isEmpty) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
   }
 }
 
-Future<void> loginRootfs([String name = "ubuntu"]) async {}
-
 Future<bool> checkEnv(Directory usr, String rootfsName) async {
+  final root = Directory("${usr.path}/var/lib/proot-distro/installed-rootfs/$rootfsName");
   final isUsr = await usr.exists();
-  final isRootfs = await Directory("${usr.path}/var/lib/proot-distro/installed-rootfs/$rootfsName").exists();
+  final isRootfs = await root.exists();
   if (!isUsr && !isRootfs) {
     return false;
   }
 
-  return true;
+  return codeServerHealth(usr, rootfsName);
 }
 
-Future<void> waitForOutput(Pattern pattern, String output) async {
-  while (pattern.allMatches(output).isEmpty) {
-    await Future.delayed(const Duration(milliseconds: 100));
-  }
-}
-
-Future<bool> checkAssets(
-  Directory usr,
-) async {
-  return usr.exists();
-}
-
+/// Deprecated
 Future<bool> codeServerHealth(Directory usr, String name) async {
   final pty = VSDroidPty(
     usr.path,
   );
 
+  var collector = OutputCollector(pty);
+
   try {
     pty.exec("""
 proot-distro login $name
-code-server -v
+which code-server
 """);
-    // final output = await pty.output.cast<List<int>>().transform(const Utf8Decoder()).last;
-    // log(output);
+    await collector.waitForOutput("code-server").timeout(const Duration(seconds: 5)).catchError((err) {
+      throw Exception(err);
+    });
   } catch (e) {
+    log("$e");
     return false;
-  } finally {}
+  }
   return true;
 }
