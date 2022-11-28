@@ -18,12 +18,12 @@ class ConfigModel extends ChangeNotifier {
   late Directory _termuxHome;
   Directory get termuxHome => _termuxHome;
 
-  late bool _isAppInited;
-  bool get isAppInited => _isAppInited;
+  late bool _isCodeServerInited;
+  bool get isCodeServerInited => _isCodeServerInited;
 
-  Future<void> setAppInit(bool arg) async {
-    _isAppInited = arg;
-    await Store.setBool(IS_APP_INIT, arg);
+  Future<void> setCodeServerInit(bool arg) async {
+    _isCodeServerInited = arg;
+    await Store.setBool(IS_CODE_SERVER_INIT, arg);
     notifyListeners();
   }
 
@@ -73,7 +73,7 @@ class ConfigModel extends ChangeNotifier {
     try {
       _terminalQuakeMode = await Store.getBool(TERMINAL_QUAKE_MODE) ?? false;
       _haveReadUsage = await Store.getBool(HAVE_READ_USAGE) ?? false;
-      _isAppInited = await Store.getBool(IS_APP_INIT) ?? false;
+      _isCodeServerInited = await Store.getBool(IS_CODE_SERVER_INIT) ?? false;
       _serverPort = await Store.getString(SERVER_PORT) ?? "20771";
       _currentRootfsId = await Store.getString(CURRENT_ROOTFS_ID);
       _filesDir = Directory("/data/data/com.deskbtm.vs_droid/files");

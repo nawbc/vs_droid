@@ -153,7 +153,7 @@ class _Home extends State<Home> {
     var result = await Connectivity().checkConnectivity();
     await _setInternalIp(result, notify: false).catchError((err) {});
 
-    return await _cm.termuxUsr.exists() && _cm.isAppInited;
+    return await _cm.termuxUsr.exists() && _cm.isCodeServerInited;
   }
 
   @override

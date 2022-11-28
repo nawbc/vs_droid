@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -84,6 +85,34 @@ Future<ProcessResult> chmod(String path, [String access = "775"]) async {
   );
 }
 
+class OutputCollector {
+  final VSDroidPty _pty;
+
+  OutputCollector(this._pty) {
+    subscription = _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen(buffer.write);
+  }
+
+  final StringBuffer buffer = StringBuffer();
+
+  late StreamSubscription subscription;
+
+  String get output => buffer.toString();
+
+  late final done = subscription.asFuture();
+
+  Future<void> waitForFirstChunk() async {
+    while (buffer.isEmpty) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
+
+  Future<void> waitForOutput(Pattern pattern) async {
+    while (pattern.allMatches(output).isEmpty) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+  }
+}
+
 Future<void> loginRootfs([String name = "ubuntu"]) async {}
 
 Future<bool> checkEnv(Directory usr, String rootfsName) async {
@@ -96,6 +125,12 @@ Future<bool> checkEnv(Directory usr, String rootfsName) async {
   return true;
 }
 
+Future<void> waitForOutput(Pattern pattern, String output) async {
+  while (pattern.allMatches(output).isEmpty) {
+    await Future.delayed(const Duration(milliseconds: 100));
+  }
+}
+
 Future<bool> checkAssets(
   Directory usr,
 ) async {
@@ -103,7 +138,7 @@ Future<bool> checkAssets(
 }
 
 Future<bool> codeServerHealth(Directory usr, String name) async {
-  final pty = DroidPty(
+  final pty = VSDroidPty(
     usr.path,
   );
 
@@ -112,9 +147,8 @@ Future<bool> codeServerHealth(Directory usr, String name) async {
 proot-distro login $name
 code-server -v
 """);
-    final output = await pty.output.cast<List<int>>().transform(const Utf8Decoder()).last;
-    // log(output.);
-    pty.kill();
+    // final output = await pty.output.cast<List<int>>().transform(const Utf8Decoder()).last;
+    // log(output);
   } catch (e) {
     return false;
   } finally {}

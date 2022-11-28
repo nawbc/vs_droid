@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:unicons/unicons.dart';
 import 'package:vs_droid/config_model.dart';
 import 'package:vs_droid/terminal_page.dart';
+import 'package:vs_droid/utils.dart';
 import 'components/switch/switch.dart';
 
 class QuickSettings extends StatefulWidget {
@@ -57,14 +58,17 @@ class QuickSettingsState extends State<QuickSettings> {
         children: <Widget>[
           InkWell(
             onTap: () async {
-              await Navigator.of(context).push(
-                CupertinoPageRoute<void>(
-                  maintainState: false,
-                  builder: (BuildContext context) {
-                    return const TerminalPage();
-                  },
-                ),
-              );
+              if (_cm.currentRootfsId != null) {
+                codeServerHealth(_cm.termuxUsr, _cm.currentRootfsId!);
+              }
+              // await Navigator.of(context).push(
+              //   CupertinoPageRoute<void>(
+              //     maintainState: false,
+              //     builder: (BuildContext context) {
+              //       return const TerminalPage();
+              //     },
+              //   ),
+              // );
             },
             child: ListTile(
               trailing: SizedBox(

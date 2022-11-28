@@ -10,20 +10,20 @@ import 'package:path/path.dart' as p;
 ///
 /// Example:
 /// ```dart
-/// _pty = DroidPty(
+/// _pty = VSDroidPty(
 ///     "bash",
 ///      columns: terminal.viewWidth,
 ///      rows: terminal.viewHeight,
 /// );
 /// ```
-class DroidPty {
+class VSDroidPty {
   late Pty _pty;
 
   Stream<Uint8List> get output => _pty.output;
   Future<int> get exitCode => _pty.exitCode;
   int get pid => _pty.pid;
 
-  DroidPty(String root, {int rows = 25, int columns = 80}) {
+  VSDroidPty(String root, {int rows = 25, int columns = 80}) {
     Map<String, String> env = Map.from(Platform.environment);
     final home = p.normalize("$root/../home");
 
@@ -70,4 +70,18 @@ class DroidPty {
   void startCodeServer() => exec("""
 
 """);
+
+  Future<void> loginRootfs([String name = "ubuntu"]) async {}
+
+  Future<bool> codeServerHealth(String name) async {
+    try {
+      exec("""
+proot-distro login $name
+code-server -v
+""");
+    } catch (e) {
+      return false;
+    } finally {}
+    return true;
+  }
 }

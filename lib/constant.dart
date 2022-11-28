@@ -1,4 +1,4 @@
-const IS_APP_INIT = 'is_app_init';
+const IS_CODE_SERVER_INIT = 'IS_CODE_SERVER_INIT';
 const TERMINAL_QUAKE_MODE = 'terminal_quake_mode';
 const HAVE_READ_USAGE = 'have_read_usage';
 const SERVER_PORT = 'server_port';

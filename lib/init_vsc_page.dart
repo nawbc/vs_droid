@@ -46,7 +46,7 @@ class InitVscPage extends StatefulWidget {
 }
 
 class _InitVscPageState extends State<InitVscPage> {
-  DroidPty? _pty;
+  VSDroidPty? _pty;
   late ConfigModel _cm;
   late ThemeModel _tm;
   PlatformFile? _rootfsFile;
@@ -91,8 +91,15 @@ class _InitVscPageState extends State<InitVscPage> {
     }
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    _pty?.kill();
+    _pty = null;
+  }
+
   void _startPty() {
-    _pty = DroidPty(
+    _pty = VSDroidPty(
       _cm.termuxUsr.path,
       columns: terminal.viewWidth,
       rows: terminal.viewHeight,
@@ -104,12 +111,11 @@ class _InitVscPageState extends State<InitVscPage> {
 
     _pty?.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
       log(data);
+      if (data.contains("CODE_SERVER_INSTALLATION_COMPLETE_FLAG") && !data.contains("echo")) {
+        _cm.setCurrentRootfsId(_distro.id);
+        _cm.setCodeServerInit(true);
+      }
       terminal.write(data);
-    }, onDone: () {
-      var a = 10;
-      print(a);
-
-      print('----------------');
     });
 
     terminal.onResize = (w, h, pw, ph) {
@@ -305,7 +311,7 @@ class _InitVscPageState extends State<InitVscPage> {
     final replaceMirrorShell = _distro.replaceCNMirrorShell[_validMirrorName];
     var rootfsTarball = _rootfsFile != null ? _rootfsFile!.path : './${_distro.tarball}';
 
-    _pty?.write("""
+    _pty?.exec("""
 PROOT_DISTRO=\$PREFIX/var/lib/proot-distro
 mkdir -p \$PROOT_DISTRO/dlcache
 mv $rootfsTarball \$PROOT_DISTRO/dlcache
@@ -313,8 +319,7 @@ proot-distro install ubuntu
 proot-distro login ubuntu
 $replaceMirrorShell
 mkdir -p /home/code-server
-apt update && apt install $_codeServerPath -y
-exit
+apt install $_codeServerPath -y && echo CODE_SERVER_INSTALLATION_COMPLETE_FLAG
 """);
   }
 

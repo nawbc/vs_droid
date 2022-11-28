@@ -18,7 +18,7 @@ class TerminalPage extends StatefulWidget {
 }
 
 class _TerminalPageState extends State<TerminalPage> {
-  late DroidPty _pty;
+  late VSDroidPty _pty;
   late ConfigModel _cm;
 
   final terminal = Terminal(
@@ -40,7 +40,7 @@ class _TerminalPageState extends State<TerminalPage> {
   }
 
   void _startPty() {
-    _pty = DroidPty(_cm.termuxUsr.path, rows: terminal.viewWidth, columns: terminal.viewHeight);
+    _pty = VSDroidPty(_cm.termuxUsr.path, rows: terminal.viewWidth, columns: terminal.viewHeight);
 
     _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
       terminal.write(data);
