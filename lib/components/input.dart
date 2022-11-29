@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:vs_droid/theme.dart';
 
 import '../theme_model.dart';
 
@@ -61,8 +60,6 @@ class _DroidInput extends State<DroidInput> {
 
   @override
   Widget build(BuildContext context) {
-    DroidTheme theme = _tm.themeData;
-
     return CupertinoTextField(
       focusNode: widget.focusNode,
       cursorHeight: 24,

@@ -1,15 +1,13 @@
 import 'dart:developer';
-import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
-import 'package:vs_droid/constant.dart';
 import 'package:vs_droid/theme_model.dart';
-import 'package:vs_droid/utils.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import 'config_model.dart';
+import 'constant.dart';
 import 'droid_pty.dart';
 
 class VscPage extends StatefulWidget {
@@ -31,7 +29,6 @@ class _VscPageState extends State<VscPage> {
   void initState() {
     super.initState();
     _init = false;
-    if (Platform.isAndroid) WebView.platform = AndroidWebView();
   }
 
   @override
@@ -58,7 +55,7 @@ class _VscPageState extends State<VscPage> {
         await _pty.startCodeServer(
           name: _cm.currentRootfsId!,
         );
-
+        await Future.delayed(const Duration(milliseconds: 500));
         setState(() {
           _init = true;
         });
@@ -73,10 +70,12 @@ class _VscPageState extends State<VscPage> {
     log("============================================");
     return SafeArea(
       child: _init
-          ? WebView(
-              javascriptMode: JavascriptMode.unrestricted,
-              initialUrl: LOCAL_CODE_SERVER_ADDR,
-              onWebResourceError: (WebResourceError error) {},
+          ? InAppWebView(
+              initialSettings: InAppWebViewSettings(
+                useHybridComposition: true,
+                iframeAllowFullscreen: true,
+              ),
+              initialUrlRequest: URLRequest(url: WebUri("http://$LOCAL_CODE_SERVER_ADDR")),
             )
           : Container(color: _tm.themeData.scaffoldBackgroundColor),
     );

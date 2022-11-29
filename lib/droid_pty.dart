@@ -34,7 +34,7 @@ class VSDroidPty {
     if (File("$root/bin/bash").existsSync()) {
       env['LD_PRELOAD'] = "$root/lib/libtermux-exec.so";
       env['LD_LIBRARY_PATH'] = "$root/lib";
-      env['PATH'] = "$root/bin:${Platform.environment["PATH"]!}";
+      env['PATH'] = "$root/bin:${Platform.environment["PATH"]}";
       env['HOME'] = home;
       env['SHELL'] = "$root/bin/bash";
       env['TERMUX_PREFIX'] = root;
@@ -79,7 +79,7 @@ class VSDroidPty {
 proot-distro login $name
 code-server --auth none --bind-addr $host
 """);
-    return collector.waitForOutput("code-server").timeout(const Duration(seconds: 5)).catchError((err) {
+    await collector.waitForOutput(host).timeout(const Duration(seconds: 8)).catchError((err) {
       throw Exception(err);
     });
   }

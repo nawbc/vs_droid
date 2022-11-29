@@ -18,4 +18,4 @@ const NCURSES_UTILS_SEMVER = "6.3-4";
 const TALLOC_SEMVER = "2.3.3";
 
 const CODE_SERVER_RELEASE = "https://github.com/coder/code-server/releases";
-const LOCAL_CODE_SERVER_ADDR = "127.0.0.1:20001";
+const LOCAL_CODE_SERVER_ADDR = "127.0.0.1:20012";

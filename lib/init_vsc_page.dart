@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'dart:convert';
 import 'package:archive/archive_io.dart';
@@ -109,13 +108,13 @@ class _InitVscPageState extends State<InitVscPage> {
       terminal.write('the process exited with exit code $code');
     });
 
-    _pty?.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
+    _pty?.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) async {
       if (data.contains("CODE_SERVER_INSTALLATION_COMPLETE_FLAG") && !data.contains("echo")) {
-        _clean().then((value) {
-          _cm.setCurrentRootfsId(_distro.id);
-          _cm.setCodeServerInit(true);
-          _pty?.kill();
-        });
+        await _clean().catchError((_) {});
+        _pty?.kill();
+        _cm.setCurrentRootfsId(_distro.id);
+        await Future.delayed(const Duration(milliseconds: 300));
+        await _cm.setCodeServerInit(true);
       }
       terminal.write(data);
     });
@@ -299,7 +298,9 @@ class _InitVscPageState extends State<InitVscPage> {
   Future<void> _clean() async {
     await for (var ele in Stream.fromIterable(_envAssets)) {
       var b = File("${_cm.termuxHome.path}/$ele");
-      await b.delete();
+      if (await b.exists()) {
+        await b.delete();
+      }
     }
   }
 

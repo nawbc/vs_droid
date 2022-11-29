@@ -149,9 +149,7 @@ class QuickSettingsState extends State<QuickSettings> {
             contentPadding: const EdgeInsets.only(left: 15, right: 25),
           ),
           InkWell(
-            onTap: () async {
-              _cm.flush();
-            },
+            onTap: () async {},
             child: const ListTile(
               title: Text("Refresh Code Server", style: TextStyle(fontSize: 14)),
               contentPadding: EdgeInsets.only(left: 15, right: 25),
