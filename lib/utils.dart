@@ -90,7 +90,7 @@ class OutputCollector {
 
   OutputCollector(this._pty) {
     subscription = _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
-      log(data);
+      log(data, name: "PTY");
       buffer.write(data);
     });
   }

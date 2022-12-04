@@ -1,11 +1,13 @@
 import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+// import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:vs_droid/theme_model.dart';
 import 'package:wakelock/wakelock.dart';
-
+// import 'package:webview_flutter/webview_flutter.dart';
 import 'config_model.dart';
 import 'constant.dart';
 import 'droid_pty.dart';
@@ -20,7 +22,7 @@ class VscPage extends StatefulWidget {
 }
 
 class _VscPageState extends State<VscPage> {
-  late VSDroidPty _pty;
+  VSDroidPty? _pty;
   late ConfigModel _cm;
   late ThemeModel _tm;
   late bool _init;
@@ -29,55 +31,79 @@ class _VscPageState extends State<VscPage> {
   void initState() {
     super.initState();
     _init = false;
+    WebView.debugLoggingSettings.enabled = true;
+    // if (Platform.isAndroid) WebView.platform = AndroidWebView();
   }
 
   @override
   void dispose() {
     super.dispose();
-    _pty.kill();
+    _pty?.kill();
     Wakelock.disable();
   }
+
+//   startServer() async {
+//     _pty?.kill();
+//     _pty = null;
+
+//     await Future.delayed(const Duration(milliseconds: 100));
+
+//     _pty = VSDroidPty(
+//       _cm.termuxUsr.path,
+//     );
+//     _pty?.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) async {
+//       log(data);
+//       if (data.contains(RegExp("$LOCAL_CODE_SERVER_URL|EADDRINUSE"))) {
+//         setState(() {
+//           _init = true;
+//         });
+//       }
+//     });
+
+//     _pty?.exec("""
+// proot-distro login ${_cm.currentRootfsId}
+// code-server --auth none --bind-addr $LOCAL_CODE_SERVER_ADDR
+// """);
+//   }
 
   @override
   Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
     _cm = Provider.of<ConfigModel>(context);
     _tm = Provider.of<ThemeModel>(context);
-    _pty = VSDroidPty(
-      _cm.termuxUsr.path,
-    );
     if (!await Wakelock.enabled) {
       Wakelock.enable();
     }
+
+    _pty = VSDroidPty(
+      _cm.termuxUsr.path,
+    );
     try {
       log("Vsc Page Init: $_init");
       if (!_init) {
-        await _pty.startCodeServer(
+        await _pty?.startCodeServer(
           name: _cm.currentRootfsId!,
         );
-        await Future.delayed(const Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 300));
+
         setState(() {
           _init = true;
         });
+
+        await launchUrl(Uri.parse(LOCAL_CODE_SERVER_URL), mode: LaunchMode.inAppWebView);
       }
     } catch (e) {
       log("Code Server: $e");
     }
   }
 
+  handleKey(dynamic e) {
+    log("$e");
+  }
+
+  final FocusNode _focusNode = FocusNode();
   @override
   Widget build(BuildContext context) {
-    log("============================================");
-    return SafeArea(
-      child: _init
-          ? InAppWebView(
-              initialSettings: InAppWebViewSettings(
-                useHybridComposition: true,
-                iframeAllowFullscreen: true,
-              ),
-              initialUrlRequest: URLRequest(url: WebUri("http://$LOCAL_CODE_SERVER_ADDR")),
-            )
-          : Container(color: _tm.themeData.scaffoldBackgroundColor),
-    );
+    return Container();
   }
 }

@@ -46,7 +46,7 @@ class QuickSettingsState extends State<QuickSettings> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _cm = Provider.of<ConfigModel>(context);
-    _c1.text = _cm.internalIP!;
+    _c1.text = _cm.internalIP;
     _c2.text = _cm.serverPort;
   }
 
@@ -149,7 +149,9 @@ class QuickSettingsState extends State<QuickSettings> {
             contentPadding: const EdgeInsets.only(left: 15, right: 25),
           ),
           InkWell(
-            onTap: () async {},
+            onTap: () async {
+              _cm.flush();
+            },
             child: const ListTile(
               title: Text("Refresh Code Server", style: TextStyle(fontSize: 14)),
               contentPadding: EdgeInsets.only(left: 15, right: 25),

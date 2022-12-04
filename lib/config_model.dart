@@ -6,6 +6,10 @@ import 'package:vs_droid/constant.dart';
 import 'package:vs_droid/store.dart';
 
 class ConfigModel extends ChangeNotifier {
+  void flush() {
+    notifyListeners();
+  }
+
   late Directory _filesDir;
   Directory get filesDir => _filesDir;
 
@@ -36,7 +40,7 @@ class ConfigModel extends ChangeNotifier {
   }
 
   late String _internalIP;
-  String? get internalIP => _internalIP;
+  String get internalIP => _internalIP;
 
   void setInternalIP(String arg, {bool notify = false}) {
     _internalIP = arg;
@@ -71,6 +75,7 @@ class ConfigModel extends ChangeNotifier {
 
   Future<void> init() async {
     try {
+      _internalIP = META_ADDR;
       _terminalQuakeMode = await Store.getBool(TERMINAL_QUAKE_MODE) ?? false;
       _haveReadUsage = await Store.getBool(HAVE_READ_USAGE) ?? false;
       _isCodeServerInited = await Store.getBool(IS_CODE_SERVER_INIT) ?? false;

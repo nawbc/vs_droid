@@ -147,7 +147,7 @@ class _Home extends State<Home> {
   Future<void> _setInternalIp(ConnectivityResult? result, {bool notify = true}) async {
     if (result == ConnectivityResult.wifi) {
       final info = NetworkInfo();
-      var wifiIP = await info.getWifiIP() ?? await getInternalIp() ?? LOOPBACK_ADDR;
+      var wifiIP = await info.getWifiIP() ?? await getInternalIp() ?? META_ADDR;
       _cm.setInternalIP(wifiIP, notify: notify);
     }
   }

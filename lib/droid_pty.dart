@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:flutter_pty/flutter_pty.dart';
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as p;
-
 import 'constant.dart';
 import 'utils.dart';
 
@@ -79,7 +78,10 @@ class VSDroidPty {
 proot-distro login $name
 code-server --auth none --bind-addr $host
 """);
-    await collector.waitForOutput(host).timeout(const Duration(seconds: 8)).catchError((err) {
+    await collector
+        .waitForOutput(RegExp("http://$host/|EADDRINUSE"))
+        .timeout(const Duration(seconds: 8))
+        .catchError((err) {
       throw Exception(err);
     });
   }
