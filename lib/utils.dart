@@ -3,7 +3,10 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:system_info2/system_info2.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'constant.dart';
 import 'droid_pty.dart';
+import 'stage_plugin.dart';
 
 /// RFC1918 https://en.wikipedia.org/wiki/Private_network
 Future<String?> getInternalIp() async {
@@ -148,4 +151,23 @@ which code-server
     return false;
   }
   return true;
+}
+
+Future<VSDroidPty> launchCodeServerStage(String usr, String name) async {
+  VSDroidPty pty = VSDroidPty(
+    usr,
+  );
+  final uri = Uri.parse(LOCAL_CODE_SERVER_URL);
+  try {
+    if (await canLaunchUrl(uri)) {
+      await pty.startCodeServer(
+        name: name,
+      );
+      await Future.delayed(const Duration(milliseconds: 300));
+      Stage.launch(uri);
+    }
+  } catch (e) {
+    log("Code Server: $e");
+  }
+  return pty;
 }

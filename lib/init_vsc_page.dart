@@ -394,199 +394,196 @@ apt install $_codeServerPath -y && echo CODE_SERVER_INSTALLATION_COMPLETE_FLAG
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.only(left: 30, right: 30),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-                child: TerminalView(
-                  terminal,
-                  padding: const EdgeInsets.only(right: 50),
-                  theme: terminalTheme,
-                  alwaysShowCursor: true,
-                  backgroundOpacity: 0,
-                ),
+    return Container(
+      padding: const EdgeInsets.only(left: 30, right: 30),
+      color: _tm.themeData.scaffoldBackgroundColor,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              child: TerminalView(
+                terminal,
+                padding: const EdgeInsets.only(right: 50),
+                theme: terminalTheme,
+                alwaysShowCursor: true,
+                backgroundOpacity: 0,
               ),
             ),
-            Expanded(
-              flex: 3,
-              child: SingleChildScrollView(
-                child: Center(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Recommended defaults', style: TextStyle(fontSize: 15.sp)),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 15),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                SizedBox(
-                                  height: 30,
-                                  child: CupertinoButton(
-                                    padding: EdgeInsets.only(
-                                        left: 30, right: _isTermuxInstalled ? 0 : 30, top: 5, bottom: 5),
-                                    onPressed: _deleteSandbox,
-                                    child:
-                                        Text('Delete sandbox', style: TextStyle(fontSize: 15, color: Colors.red[800])),
-                                  ),
+          ),
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
+              child: Center(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Recommended defaults', style: TextStyle(fontSize: 15.sp)),
+                        Padding(
+                          padding: const EdgeInsets.only(right: 15),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                height: 30,
+                                child: CupertinoButton(
+                                  padding:
+                                      EdgeInsets.only(left: 30, right: _isTermuxInstalled ? 0 : 30, top: 5, bottom: 5),
+                                  onPressed: _deleteSandbox,
+                                  child: Text('Delete sandbox', style: TextStyle(fontSize: 15, color: Colors.red[800])),
                                 ),
-                                _isTermuxInstalled
-                                    ? Container()
-                                    : Row(
-                                        children: [
-                                          const SizedBox(width: 10),
-                                          SizedBox(
-                                            height: 30,
-                                            child: CupertinoButton.filled(
-                                              borderRadius: const BorderRadius.all(Radius.circular(4)),
-                                              padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
-                                              onPressed: _install,
-                                              child: Text('Install', style: TextStyle(fontSize: 15.sp)),
-                                            ),
+                              ),
+                              _isTermuxInstalled
+                                  ? Container()
+                                  : Row(
+                                      children: [
+                                        const SizedBox(width: 10),
+                                        SizedBox(
+                                          height: 30,
+                                          child: CupertinoButton.filled(
+                                            borderRadius: const BorderRadius.all(Radius.circular(4)),
+                                            padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
+                                            onPressed: _install,
+                                            child: Text('Install', style: TextStyle(fontSize: 15.sp)),
                                           ),
-                                        ],
-                                      ),
-                              ],
+                                        ),
+                                      ],
+                                    ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    Material(
+                      color: Colors.transparent,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text("Region:"),
+                          const SizedBox(width: 20),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _region = "zh";
+                              });
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: 20,
+                              padding: const EdgeInsets.only(left: 10, right: 10),
+                              color: _region == "zh" ? _tm.themeData.primaryColor : Colors.transparent,
+                              child: Text('中文',
+                                  style: TextStyle(fontSize: 12, color: _region == "zh" ? Colors.white : null)),
+                            ),
+                          ),
+                          const SizedBox(width: 25),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _region = "en";
+                              });
+                            },
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: 20,
+                              padding: const EdgeInsets.only(left: 10, right: 10),
+                              color: _region == "zh" ? Colors.transparent : _tm.themeData.primaryColor,
+                              child: Text('English',
+                                  style: TextStyle(fontSize: 12, color: _region == "zh" ? null : Colors.white)),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
-                      Material(
-                        color: Colors.transparent,
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Text("Region:"),
-                            const SizedBox(width: 20),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _region = "zh";
-                                });
-                              },
-                              child: Container(
-                                alignment: Alignment.center,
-                                height: 20,
-                                padding: const EdgeInsets.only(left: 10, right: 10),
-                                color: _region == "zh" ? _tm.themeData.primaryColor : Colors.transparent,
-                                child: Text('中文',
-                                    style: TextStyle(fontSize: 12, color: _region == "zh" ? Colors.white : null)),
-                              ),
-                            ),
-                            const SizedBox(width: 25),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _region = "en";
-                                });
-                              },
-                              child: Container(
-                                alignment: Alignment.center,
-                                height: 20,
-                                padding: const EdgeInsets.only(left: 10, right: 10),
-                                color: _region == "zh" ? Colors.transparent : _tm.themeData.primaryColor,
-                                child: Text('English',
-                                    style: TextStyle(fontSize: 12, color: _region == "zh" ? null : Colors.white)),
-                              ),
-                            ),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(height: 20),
+                    ListItem(
+                      require: true,
+                      dotted: true,
+                      leading: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(_distro.name),
+                        ],
                       ),
-                      const SizedBox(height: 20),
-                      ListItem(
-                        require: true,
-                        dotted: true,
-                        leading: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(_distro.name),
-                          ],
-                        ),
-                        trailing: CupertinoButton(
-                          onPressed: _pickRootfs,
-                          child: _selectRootfs("Select rootfs"),
-                        ),
+                      trailing: CupertinoButton(
+                        onPressed: _pickRootfs,
+                        child: _selectRootfs("Select rootfs"),
                       ),
-                      ListItem(
+                    ),
+                    ListItem(
+                      require: true,
+                      dotted: true,
+                      leading: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(_rootfsPath, style: const TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                      trailing: Wrap(
+                        children: [
+                          CupertinoButton(
+                            onPressed: () async {
+                              await launchUrl(Uri.parse(_region == "zh" ? _distro.releaseUriCN! : _distro.releaseUri!),
+                                  mode: LaunchMode.externalApplication);
+                            },
+                            child: const Text('Download'),
+                          ),
+                          CupertinoButton(
+                            onPressed: _pickRootfs,
+                            child: const Text('Pick file'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ListItem(
                         require: true,
                         dotted: true,
                         leading: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(_rootfsPath, style: const TextStyle(color: Colors.grey)),
+                          children: const [
+                            Text("Code Server"),
                           ],
                         ),
+                        sub: _codeServerPath == null
+                            ? null
+                            : Text(_codeServerPath ?? "", style: const TextStyle(fontSize: 12, color: Colors.grey)),
                         trailing: Wrap(
                           children: [
                             CupertinoButton(
                               onPressed: () async {
-                                await launchUrl(
-                                    Uri.parse(_region == "zh" ? _distro.releaseUriCN! : _distro.releaseUri!),
-                                    mode: LaunchMode.externalApplication);
+                                await launchUrl(Uri.parse(CODE_SERVER_RELEASE), mode: LaunchMode.externalApplication);
                               },
                               child: const Text('Download'),
                             ),
                             CupertinoButton(
-                              onPressed: _pickRootfs,
+                              onPressed: _pickCodeServer,
                               child: const Text('Pick file'),
                             ),
                           ],
-                        ),
-                      ),
-                      ListItem(
-                          require: true,
-                          dotted: true,
-                          leading: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Text("Code Server"),
-                            ],
-                          ),
-                          sub: _codeServerPath == null
-                              ? null
-                              : Text(_codeServerPath ?? "", style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                          trailing: Wrap(
-                            children: [
-                              CupertinoButton(
-                                onPressed: () async {
-                                  await launchUrl(Uri.parse(CODE_SERVER_RELEASE), mode: LaunchMode.externalApplication);
-                                },
-                                child: const Text('Download'),
-                              ),
-                              CupertinoButton(
-                                onPressed: _pickCodeServer,
-                                child: const Text('Pick file'),
-                              ),
-                            ],
-                          )),
-                      _region == "zh"
-                          ? ListItem(
-                              dotted: true,
-                              leading: Text(_validMirrorName),
-                              sub: const Text("推荐更换镜像(默认清华源)", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                              trailing: CupertinoButton(
-                                onPressed: () {},
-                                child: _selectMirror("Select rootfs mirror"),
-                              ),
-                            )
-                          : Container(),
-                    ],
-                  ),
+                        )),
+                    _region == "zh"
+                        ? ListItem(
+                            dotted: true,
+                            leading: Text(_validMirrorName),
+                            sub: const Text("推荐更换镜像(默认清华源)", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            trailing: CupertinoButton(
+                              onPressed: () {},
+                              child: _selectMirror("Select rootfs mirror"),
+                            ),
+                          )
+                        : Container(),
+                  ],
                 ),
               ),
-            )
-          ],
-        ),
+            ),
+          )
+        ],
       ),
     );
   }

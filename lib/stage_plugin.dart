@@ -6,4 +6,8 @@ class Stage {
     String urlStr = url.toString();
     return _channel.invokeMethod<bool>("launch", {"url": urlStr});
   }
+
+  static Future<bool?> zoom(int val) async {
+    return _channel.invokeMethod<bool>("setZoom", {"val": val});
+  }
 }

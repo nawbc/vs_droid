@@ -1,27 +1,27 @@
+import 'utils.dart';
 import 'dart:async';
-import 'dart:developer';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:network_info_plus/network_info_plus.dart';
-import 'package:provider/provider.dart';
-import 'package:unicons/unicons.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'config_model.dart';
-import 'constant.dart';
-import 'double_pop.dart';
+import 'theme.dart';
 import 'error.dart';
+import 'constant.dart';
 import 'vsc_page.dart';
+import 'dart:developer';
+import 'double_pop.dart';
+import 'config_model.dart';
 import 'init_vsc_page.dart';
 import 'inner_drawer.dart';
 import 'quick_settings.dart';
-import 'theme.dart';
 import 'theme_model.dart';
-import 'utils.dart';
+import 'package:unicons/unicons.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:network_info_plus/network_info_plus.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 class VSDroid extends StatefulWidget {
   const VSDroid({super.key});
@@ -193,9 +193,7 @@ class _Home extends State<Home> {
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         bool isInit = snapshot.data == true;
         if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError || snapshot.data == null) {
-            return const ErrorBoard();
-          }
+          if (snapshot.hasError || snapshot.data == null) return const ErrorBoard();
 
           return GestureDetector(
             onTap: () {

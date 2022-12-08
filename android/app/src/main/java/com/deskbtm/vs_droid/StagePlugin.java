@@ -42,10 +42,14 @@ public final class StagePlugin implements FlutterPlugin, MethodChannel.MethodCal
 
     @Override
     public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-        final String url = call.argument("url");
         switch (call.method) {
             case "launch":
+                final String url = call.argument("url");
                 launch(result, url);
+                break;
+            case "setZoom":
+                final int val = call.argument("val");
+                setZoom(result, val);
                 break;
             default:
                 result.notImplemented();
@@ -64,6 +68,13 @@ public final class StagePlugin implements FlutterPlugin, MethodChannel.MethodCal
         }
     }
 
+    void setZoom(@NonNull MethodChannel.Result result, int val) {
+        if (WebViewActivity.webview != null) {
+            WebViewActivity.webview.setInitialScale(val);
+        }
+    }
+
+
     @Override
     public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {
         activity = binding.getActivity();
@@ -72,6 +83,7 @@ public final class StagePlugin implements FlutterPlugin, MethodChannel.MethodCal
     @Override
     public void onDetachedFromActivity() {
         activity = null;
+        WebViewActivity.webview = null;
     }
 
     @Override

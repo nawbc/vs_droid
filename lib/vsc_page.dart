@@ -1,12 +1,11 @@
-import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:vs_droid/quick_settings.dart';
 import 'package:wakelock/wakelock.dart';
 import 'config_model.dart';
-import 'constant.dart';
 import 'droid_pty.dart';
-import 'stage_plugin.dart';
+import 'utils.dart';
 
 class VscPage extends StatefulWidget {
   const VscPage({Key? key}) : super(key: key);
@@ -43,25 +42,21 @@ class _VscPageState extends State<VscPage> {
       Wakelock.enable();
     }
 
-    _pty = VSDroidPty(
-      _cm.termuxUsr.path,
-    );
-    try {
-      log("Vsc Page Init: $_init");
-      if (!_init) {
-        await _pty?.startCodeServer(
-          name: _cm.currentRootfsId!,
-        );
-        await Future.delayed(const Duration(milliseconds: 300));
-        Stage.launch(Uri.parse(LOCAL_CODE_SERVER_URL));
-      }
-    } catch (e) {
-      log("Code Server: $e");
+    if (!_init) {
+      _pty?.kill();
+      // _pty = await launchCodeServerStage(_cm.termuxUsr.path, _cm.currentRootfsId!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    // return InAppWebView(
+    //   initialSettings:
+    //       InAppWebViewSettings(useHybridComposition: true, iframeAllowFullscreen: true, hardwareAcceleration: true),
+    //   initialUrlRequest: URLRequest(url: WebUri("http://$LOCAL_CODE_SERVER_ADDR")),
+    // );
+    return Container(
+      color: Colors.white,
+    );
   }
 }

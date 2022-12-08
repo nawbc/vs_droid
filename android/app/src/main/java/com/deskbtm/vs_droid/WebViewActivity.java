@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.flutter.embedding.android.FlutterActivity;
+
 public class WebViewActivity extends Activity {
     /*
      * Use this to trigger a BroadcastReceiver inside WebViewActivity
@@ -69,7 +71,7 @@ public class WebViewActivity extends Activity {
                 }
             };
 
-    private WebView webview;
+    public static WebView webview;
 
     private IntentFilter closeIntentFilter = new IntentFilter(ACTION_CLOSE);
 
@@ -123,7 +125,7 @@ public class WebViewActivity extends Activity {
 
         final Map<String, String> headersMap = extractHeaders(headersBundle);
         webview.loadUrl(url, headersMap);
-        WebSettings webViewSettings =  webview.getSettings();
+        WebSettings webViewSettings = webview.getSettings();
 
         webViewSettings.setJavaScriptEnabled(true);
         webViewSettings.setDomStorageEnabled(true);
@@ -173,9 +175,17 @@ public class WebViewActivity extends Activity {
         return super.onKeyDown(keyCode, event);
     }
 
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(this, FlutterActivity.class);
+        startActivity(intent);
+    }
+
     public static Intent createIntent(
             Context context,
             String url) {
+
         return new Intent(context, WebViewActivity.class)
                 .putExtra(URL_EXTRA, url);
     }

@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:unicons/unicons.dart';
 import 'package:vs_droid/config_model.dart';
+import 'package:vs_droid/init_vsc_page.dart';
 import 'package:vs_droid/terminal_page.dart';
 import 'components/switch/switch.dart';
 import 'droid_pty.dart';
@@ -108,7 +109,7 @@ class QuickSettingsState extends State<QuickSettings> {
                   ),
                 ),
               ),
-              title: const Text("Terminal View", style: TextStyle(fontSize: 14)),
+              title: const Text("Terminal", style: TextStyle(fontSize: 14)),
               contentPadding: const EdgeInsets.only(left: 15, right: 25),
             ),
           ),
@@ -150,12 +151,19 @@ class QuickSettingsState extends State<QuickSettings> {
           ),
           InkWell(
             onTap: () async {
-              _cm.flush();
+              await Navigator.of(context).push(
+                CupertinoPageRoute<void>(
+                  maintainState: false,
+                  builder: (BuildContext context) {
+                    return const InitVscPage();
+                  },
+                ),
+              );
             },
             child: const ListTile(
-              title: Text("Refresh Code Server", style: TextStyle(fontSize: 14)),
+              title: Text("Installation Page", style: TextStyle(fontSize: 14, color: Colors.red)),
               contentPadding: EdgeInsets.only(left: 15, right: 25),
-              subtitle: Text("restart the code server when lost connection"),
+              subtitle: Text("Re-install envirenment"),
             ),
           ),
         ],

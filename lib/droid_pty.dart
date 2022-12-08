@@ -68,6 +68,13 @@ class VSDroidPty {
 
   void ackRead() => _pty.ackRead();
 
+  Future<void> loginRootfs(String name) async {
+    write("""
+proot-distro login $name
+clear
+""");
+  }
+
   /// Preset shells
   Future<void> startCodeServer({
     String name = "ubuntu",

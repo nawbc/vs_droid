@@ -33,14 +33,19 @@ class _TerminalPageState extends State<TerminalPage> {
   }
 
   @override
-  void didChangeDependencies() {
+  Future<void> didChangeDependencies() async {
     super.didChangeDependencies();
     _cm = Provider.of<ConfigModel>(context);
-    _startPty();
+    await _startPty();
   }
 
-  void _startPty() {
+  Future<void> _startPty() async {
     _pty = VSDroidPty(_cm.termuxUsr.path, rows: terminal.viewWidth, columns: terminal.viewHeight);
+
+    if (_cm.currentRootfsId != null) {
+      _pty.loginRootfs(_cm.currentRootfsId!);
+      await Future.delayed(const Duration(milliseconds: 600));
+    }
 
     _pty.output.cast<List<int>>().transform(const Utf8Decoder()).listen((data) {
       terminal.write(data);
