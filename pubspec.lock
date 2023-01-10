@@ -726,6 +726,13 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "3.0.6"
+  variable_app_icon:
+    dependency: "direct main"
+    description:
+      name: variable_app_icon
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "0.0.2"
   vector_math:
     dependency: transitive
     description:

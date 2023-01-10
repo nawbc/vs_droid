@@ -11,4 +11,5 @@ public class MainActivity extends FlutterActivity {
         flutterEngine.getPlugins().add(new StagePlugin());
         super.configureFlutterEngine(flutterEngine);
     }
+
 }

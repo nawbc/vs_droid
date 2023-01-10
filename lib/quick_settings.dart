@@ -166,6 +166,9 @@ class QuickSettingsState extends State<QuickSettings> {
               subtitle: Text("Re-install envirenment"),
             ),
           ),
+          Row(
+            children: [],
+          )
         ],
       ),
     ];

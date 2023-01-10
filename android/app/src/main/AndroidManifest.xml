@@ -13,12 +13,37 @@
 
     <application
         android:name="${applicationName}"
-        android:icon="@drawable/ic_launcher"
-        android:label="@string/appName"
         android:networkSecurityConfig="@xml/network_security_config"
         android:persistent="true"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="false">
+        <activity-alias
+            android:name="letscollab.DEFAULT"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/appName"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <activity-alias
+            android:name="letscollab.VSCODE"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher1"
+            android:label="@string/appName"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -36,7 +61,7 @@
                 android:resource="@style/NormalTheme" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
             </intent-filter>
         </activity>
         <activity

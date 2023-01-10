@@ -87,7 +87,7 @@ code-server --auth none --bind-addr $host
 """);
     await collector
         .waitForOutput(RegExp("http://$host/|EADDRINUSE"))
-        .timeout(const Duration(seconds: 8))
+        .timeout(const Duration(seconds: 15))
         .catchError((err) {
       throw Exception(err);
     });

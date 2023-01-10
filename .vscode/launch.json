@@ -20,6 +20,17 @@
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"
-        }
+        },
+        {
+            "name": "Launch (local engine)",
+            "request": "launch",
+            "type": "dart",
+            "args": [
+                "--local-engine",
+                "android_debug_unopt_arm64",
+                "--local-engine-src-path",
+                "/home/nawbc/Workspace/engine/src"
+            ]
+        },
     ]
 }

@@ -7,9 +7,13 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:vs_droid/app.dart';
 import 'package:vs_droid/constant.dart';
 import 'firebase_options.dart';
+import 'package:variable_app_icon/variable_app_icon.dart';
+
+const List<String> androidIconIds = ["DEFAULT", "VSCODE"];
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  VariableAppIcon.androidAppIconIds = androidIconIds;
 
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     await InAppWebViewController.setWebContentsDebuggingEnabled(true);

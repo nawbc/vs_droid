@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
 import 'package:vs_droid/quick_settings.dart';
 import 'package:wakelock/wakelock.dart';
 import 'config_model.dart';
+import 'constant.dart';
 import 'droid_pty.dart';
 import 'utils.dart';
 
@@ -43,20 +47,34 @@ class _VscPageState extends State<VscPage> {
     }
 
     if (!_init) {
-      _pty?.kill();
+      _pty = VSDroidPty(
+        _cm.termuxUsr.path,
+      );
+      await _pty?.startCodeServer(
+        name: _cm.currentRootfsId!,
+      );
+
+      if (mounted) {
+        setState(() {
+          _init = true;
+        });
+      }
       // _pty = await launchCodeServerStage(_cm.termuxUsr.path, _cm.currentRootfsId!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // return InAppWebView(
-    //   initialSettings:
-    //       InAppWebViewSettings(useHybridComposition: true, iframeAllowFullscreen: true, hardwareAcceleration: true),
-    //   initialUrlRequest: URLRequest(url: WebUri("http://$LOCAL_CODE_SERVER_ADDR")),
-    // );
-    return Container(
-      color: Colors.white,
+    return SafeArea(
+      child: _init
+          ? InAppWebView(
+              initialSettings: InAppWebViewSettings(
+                  useHybridComposition: true, iframeAllowFullscreen: true, hardwareAcceleration: true),
+              initialUrlRequest: URLRequest(url: WebUri("http://$LOCAL_CODE_SERVER_ADDR")),
+            )
+          : Container(
+              color: Colors.white,
+            ),
     );
   }
 }
