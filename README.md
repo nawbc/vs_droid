@@ -1,5 +1,5 @@
 <a href="#" target="_blank" rel="noopener noreferrer">
-<img width="70" src="android/app/src/main/res/drawable/ic_launcher.png" alt="vs droid" /></a>
+<img width="70" src="https://s2.loli.net/2023/01/10/cSn8MLrOsQRUhEJ.png" alt="vs droid" /></a>
 
 <p align="center">
     <h1 align="center">
