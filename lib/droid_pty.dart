@@ -85,11 +85,6 @@ clear
 proot-distro login $name
 code-server --auth none --bind-addr $host
 """);
-    await collector
-        .waitForOutput(RegExp("http://$host/|EADDRINUSE"))
-        .timeout(const Duration(seconds: 15))
-        .catchError((err) {
-      throw Exception(err);
-    });
+    await collector.waitForOutput(RegExp("http://$host/|EADDRINUSE")).timeout(const Duration(seconds: 15));
   }
 }

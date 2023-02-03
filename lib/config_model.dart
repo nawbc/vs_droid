@@ -89,7 +89,7 @@ class ConfigModel extends ChangeNotifier {
       _isCodeServerInited = await Store.getBool(IS_CODE_SERVER_INIT) ?? false;
       _serverPort = await Store.getString(SERVER_PORT) ?? "20771";
       _currentRootfsId = await Store.getString(CURRENT_ROOTFS_ID);
-      _appIcon = await Store.getString(APP_ICON) ?? "DEFAULT";
+      _appIcon = await Store.getString(APP_ICON) ?? "appicon.DEFAULT";
       _filesDir = Directory("/data/data/com.deskbtm.vs_droid/files");
       _termuxUsr = Directory("${_filesDir.path}/usr");
       _termuxBin = Directory("$_termuxUsr/bin");

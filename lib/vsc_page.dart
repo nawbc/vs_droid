@@ -1,15 +1,10 @@
-import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:provider/provider.dart';
-import 'package:vs_droid/quick_settings.dart';
 import 'package:wakelock/wakelock.dart';
 import 'config_model.dart';
 import 'constant.dart';
 import 'droid_pty.dart';
-import 'utils.dart';
 
 class VscPage extends StatefulWidget {
   const VscPage({Key? key}) : super(key: key);
@@ -65,12 +60,17 @@ class _VscPageState extends State<VscPage> {
 
   @override
   Widget build(BuildContext context) {
+    // return Container(
+    //   color: Colors.white,
+    // );
     return SafeArea(
       child: _init
           ? InAppWebView(
               initialSettings: InAppWebViewSettings(
                   useHybridComposition: true, iframeAllowFullscreen: true, hardwareAcceleration: true),
-              initialUrlRequest: URLRequest(url: WebUri("http://$LOCAL_CODE_SERVER_ADDR")),
+              initialUrlRequest: URLRequest(
+                url: WebUri(LOCAL_CODE_SERVER_URL),
+              ),
             )
           : Container(
               color: Colors.white,

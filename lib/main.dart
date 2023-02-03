@@ -9,7 +9,7 @@ import 'package:vs_droid/constant.dart';
 import 'firebase_options.dart';
 import 'package:variable_app_icon/variable_app_icon.dart';
 
-const List<String> androidIconIds = ["DEFAULT", "VSCODE"];
+const List<String> androidIconIds = ["appicon.DEFAULT", "appicon.VSCODE"];
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

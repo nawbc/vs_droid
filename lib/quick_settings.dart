@@ -4,11 +4,77 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:unicons/unicons.dart';
+import 'package:variable_app_icon/variable_app_icon.dart';
 import 'package:vs_droid/config_model.dart';
 import 'package:vs_droid/init_vsc_page.dart';
 import 'package:vs_droid/terminal_page.dart';
+import 'package:wakelock/wakelock.dart';
 import 'components/switch/switch.dart';
 import 'droid_pty.dart';
+import 'theme.dart';
+import 'theme_model.dart';
+
+class ImageItem {
+  final dynamic value;
+  final Image image;
+
+  ImageItem({required this.value, required this.image});
+}
+
+class ImageSelect extends StatelessWidget {
+  final Function(dynamic value) onChange;
+  final List<ImageItem> images;
+  final int defaultIndex;
+
+  const ImageSelect({
+    Key? key,
+    required this.images,
+    required this.onChange,
+    this.defaultIndex = 0,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    int active = defaultIndex;
+    ThemeModel themeModel = Provider.of<ThemeModel>(context, listen: false);
+    DroidTheme themeData = themeModel.themeData;
+
+    return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
+      return Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: images
+            .asMap()
+            .map(
+              (key, el) => MapEntry(
+                key,
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      active = key;
+                    });
+                    onChange(el.value);
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 10),
+                    decoration: active == key
+                        ? BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(spreadRadius: -1, color: themeData.primaryColor),
+                            ],
+                            borderRadius: const BorderRadius.all(Radius.circular(5)),
+                          )
+                        : null,
+                    child: el.image,
+                  ),
+                ),
+              ),
+            )
+            .values
+            .toList(),
+      );
+    });
+  }
+}
 
 class QuickSettings extends StatefulWidget {
   const QuickSettings({Key? key}) : super(key: key);
@@ -149,6 +215,33 @@ class QuickSettingsState extends State<QuickSettings> {
             title: const Text("Allow Lan", style: TextStyle(fontSize: 14)),
             contentPadding: const EdgeInsets.only(left: 15, right: 25),
           ),
+          ListTile(
+            trailing: ImageSelect(
+              defaultIndex: _cm.appIcon == "appicon.DEFAULT" ? 0 : 1,
+              onChange: (val) async {
+                await VariableAppIcon.changeAppIcon(androidIconId: val);
+                _cm.setAppIcon(val);
+              },
+              images: [
+                ImageItem(
+                  value: 'appicon.DEFAULT',
+                  image: Image.asset(
+                    'assets/ic_launcher.png',
+                    width: 35,
+                  ),
+                ),
+                ImageItem(
+                  value: 'appicon.VSCODE',
+                  image: Image.asset(
+                    'assets/ic_launcher1.png',
+                    width: 35,
+                  ),
+                ),
+              ],
+            ),
+            title: const Text("Change App Icon", style: TextStyle(fontSize: 14)),
+            contentPadding: const EdgeInsets.only(left: 15, right: 25),
+          ),
           InkWell(
             onTap: () async {
               await Navigator.of(context).push(
@@ -166,9 +259,6 @@ class QuickSettingsState extends State<QuickSettings> {
               subtitle: Text("Re-install envirenment"),
             ),
           ),
-          Row(
-            children: [],
-          )
         ],
       ),
     ];

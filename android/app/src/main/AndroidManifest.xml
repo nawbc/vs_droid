@@ -18,7 +18,7 @@
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="false">
         <activity-alias
-            android:name="letscollab.DEFAULT"
+            android:name="appicon.DEFAULT"
             android:enabled="true"
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
@@ -31,7 +31,7 @@
         </activity-alias>
 
         <activity-alias
-            android:name="letscollab.VSCODE"
+            android:name="appicon.VSCODE"
             android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher1"

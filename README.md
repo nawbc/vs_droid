@@ -12,9 +12,9 @@
 ## Getting Started
 
 
-## Build
+## Contributor guide
 
-Before you begin
+### Prepare
 - Create the termux-packages building environment, clone the [deskbtm/termux-packages](https://github.com/deskbtm/termux-packages) that forks the termux-packages, 
 <br />and  follow the guide https://github.com/termux/termux-packages/wiki/For-maintainers#examples
 - For now, all the deb packages in `assets` need to build locally.
