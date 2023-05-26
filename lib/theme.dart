@@ -11,7 +11,7 @@ class LightTheme implements DroidTheme {
   @override
   Color primaryColor = const Color(0xFF007AFF);
   @override
-  Color scaffoldBackgroundColor = const Color(0xfffffffff);
+  Color scaffoldBackgroundColor = const Color(0xFFFFFFFF);
 
   @override
   Color modalColor(context) {
