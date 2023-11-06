@@ -29,6 +29,13 @@
             {
               "client_id": "1025532827951-d3ak4450dhtg31s8ntk1qrthj17h0b6d.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1025532827951-smm2depfpvarlj29j9e9jcsdsfh9gi5m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.deskbtm.vsDroid"
+              }
             }
           ]
         }
