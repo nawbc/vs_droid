@@ -13,9 +13,13 @@ class DoublePop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
+    return PopScope(
       child: child,
-      onWillPop: () async {
+      onPopInvoked: (bool didPop) async {
+        if (didPop) {
+          return;
+        }
+        final NavigatorState navigator = Navigator.of(context);
         if (_lastPressedTime == null ||
             (_lastPressedTime != null &&
                 DateTime.now().difference(_lastPressedTime!) > const Duration(milliseconds: 800))) {
@@ -23,9 +27,9 @@ class DoublePop extends StatelessWidget {
           Fluttertoast.showToast(
             msg: "Press once again",
           );
-          return false;
+
+          navigator.pop();
         }
-        return true;
       },
     );
   }

@@ -8,10 +8,10 @@ class ErrorBoard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      child: Center(
+      child: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(
               UniconsLine.exclamation_triangle,
               color: Colors.red,

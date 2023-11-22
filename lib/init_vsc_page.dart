@@ -5,7 +5,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 // ignore: depend_on_referenced_packages
@@ -423,7 +422,7 @@ apt install $_codeServerPath -y && echo CODE_SERVER_INSTALLATION_COMPLETE_FLAG
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Recommended defaults', style: TextStyle(fontSize: 15.sp)),
+                        const Text('Recommended defaults', style: TextStyle(fontSize: 15)),
                         Padding(
                           padding: const EdgeInsets.only(right: 15),
                           child: Row(
@@ -449,7 +448,7 @@ apt install $_codeServerPath -y && echo CODE_SERVER_INSTALLATION_COMPLETE_FLAG
                                             borderRadius: const BorderRadius.all(Radius.circular(4)),
                                             padding: const EdgeInsets.only(left: 30, right: 30, top: 5, bottom: 5),
                                             onPressed: _install,
-                                            child: Text('Install', style: TextStyle(fontSize: 15.sp)),
+                                            child: const Text('Install', style: TextStyle(fontSize: 15)),
                                           ),
                                         ),
                                       ],
@@ -544,9 +543,9 @@ apt install $_codeServerPath -y && echo CODE_SERVER_INSTALLATION_COMPLETE_FLAG
                     ListItem(
                         require: true,
                         dotted: true,
-                        leading: Row(
+                        leading: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Text("Code Server"),
                           ],
                         ),

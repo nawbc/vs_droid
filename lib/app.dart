@@ -16,12 +16,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+// import 'package:firebase_analytics/firebase_analytics.dart';
 
 class VSDroid extends StatefulWidget {
   const VSDroid({super.key});
@@ -104,6 +103,7 @@ class _InnerVSDroid extends State<InnerVSDroid> {
             ),
             child: CupertinoApp(
               theme: CupertinoThemeData(
+                brightness: Brightness.light,
                 primaryColor: themeData.primaryColor,
                 textTheme: const CupertinoTextThemeData(
                   textStyle: TextStyle(fontSize: 14, color: Color(0xFF131313)),
@@ -114,10 +114,7 @@ class _InnerVSDroid extends State<InnerVSDroid> {
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-              navigatorObservers: [
-                SentryNavigatorObserver(),
-                FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)
-              ],
+              // navigatorObservers: [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)],
               title: 'VS Droid',
               home: child,
             ),

@@ -286,6 +286,7 @@ class InnerDrawerState extends State<InnerDrawer> with SingleTickerProviderState
       case InnerDrawerDirection.start:
         delta = -delta;
         break;
+      case null:
     }
     switch (Directionality.of(context)) {
       case TextDirection.rtl:
@@ -314,6 +315,7 @@ class InnerDrawerState extends State<InnerDrawer> with SingleTickerProviderState
         case InnerDrawerDirection.start:
           visualVelocity = -visualVelocity;
           break;
+        case null:
       }
       switch (Directionality.of(context)) {
         case TextDirection.rtl:
@@ -358,6 +360,7 @@ class InnerDrawerState extends State<InnerDrawer> with SingleTickerProviderState
         return AlignmentDirectional.centerEnd;
       case InnerDrawerDirection.end:
         return AlignmentDirectional.centerStart;
+      case null:
     }
     return null;
   }
@@ -369,6 +372,7 @@ class InnerDrawerState extends State<InnerDrawer> with SingleTickerProviderState
         return AlignmentDirectional.centerStart;
       case InnerDrawerDirection.end:
         return AlignmentDirectional.centerEnd;
+      case null:
     }
     return null;
   }
@@ -568,7 +572,7 @@ class InnerDrawerState extends State<InnerDrawer> with SingleTickerProviderState
     return Container(
       decoration: widget.backgroundDecoration ??
           BoxDecoration(
-            color: Theme.of(context).backgroundColor,
+            color: Theme.of(context).colorScheme.background,
           ),
       child: Stack(
         alignment: _drawerInnerAlignment!,

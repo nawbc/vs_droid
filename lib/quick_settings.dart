@@ -8,7 +8,6 @@ import 'package:variable_app_icon/variable_app_icon.dart';
 import 'package:vs_droid/config_model.dart';
 import 'package:vs_droid/init_vsc_page.dart';
 import 'package:vs_droid/terminal_page.dart';
-import 'package:wakelock/wakelock.dart';
 import 'components/switch/switch.dart';
 import 'droid_pty.dart';
 import 'theme.dart';
@@ -167,11 +166,8 @@ class QuickSettingsState extends State<QuickSettings> {
                   onPressed: () async {
                     Fluttertoast.showToast(msg: "Coming soon");
                   },
-                  child: Wrap(
-                    children: const [
-                      Text("Quake mode", style: TextStyle(fontSize: 12)),
-                      Icon(UniconsLine.bolt, size: 14)
-                    ],
+                  child: const Wrap(
+                    children: [Text("Quake mode", style: TextStyle(fontSize: 12)), Icon(UniconsLine.bolt, size: 14)],
                   ),
                 ),
               ),
@@ -264,27 +260,29 @@ class QuickSettingsState extends State<QuickSettings> {
     ];
 
     return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
+      navigationBar: const CupertinoNavigationBar(
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         leading: Text(
           'Quick Settings',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 20.sp,
+            fontSize: 20,
           ),
         ),
         border: null,
       ),
       child: Material(
-        color: Colors.transparent,
-        child: SafeArea(
-          child: ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            itemCount: settings.length,
-            itemBuilder: (BuildContext context, int index) {
-              return settings[index];
-            },
+        child: Container(
+          color: Colors.white,
+          child: SafeArea(
+            child: ListView.builder(
+              physics: const BouncingScrollPhysics(),
+              itemCount: settings.length,
+              itemBuilder: (BuildContext context, int index) {
+                return settings[index];
+              },
+            ),
           ),
         ),
       ),

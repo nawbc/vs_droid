@@ -164,7 +164,7 @@ Future<VSDroidPty> launchCodeServerStage(String usr, String name) async {
         name: name,
       );
       await Future.delayed(const Duration(milliseconds: 300));
-      Stage.launch(uri);
+      // Stage.launch(uri);
     }
   } catch (e) {
     log("Code Server: $e");

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:vs_droid/constant.dart';
 import 'package:vs_droid/store.dart';
 
@@ -94,11 +93,6 @@ class ConfigModel extends ChangeNotifier {
       _termuxUsr = Directory("${_filesDir.path}/usr");
       _termuxBin = Directory("$_termuxUsr/bin");
       _termuxHome = Directory("${_filesDir.path}/home");
-    } catch (e, s) {
-      await Sentry.captureException(
-        e,
-        stackTrace: s,
-      );
-    }
+    } catch (e, s) {}
   }
 }
