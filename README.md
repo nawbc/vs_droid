@@ -7,6 +7,8 @@
     </h1>
 </p>
 
+VS Droid is fully native based on Termux.
+
 ### Visual Studio Code for Android.
 
 ## Getting Started
